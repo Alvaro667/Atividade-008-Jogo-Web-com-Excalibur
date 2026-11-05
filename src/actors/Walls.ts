@@ -1,13 +1,14 @@
 import * as ex from "excalibur";
 
-export class WallNS extends ex.Actor {
+export class Wall extends ex.Actor {
     moving = false;
-    constructor(pos: ex.Vector) {
+    constructor(pos: ex.Vector, rotation: number = 0, height: number = 540, width: number = 10) {
         super({
             pos,
+            height,
+            width,
+            rotation: rotation * Math.PI / 2,
             anchor: ex.vec(0, 0),
-            height: 10,
-            width: 960,
             color: ex.Color.fromHex('#bd9853'),
             z: 1, // position the wall above everything
             collisionType: ex.CollisionType.Fixed

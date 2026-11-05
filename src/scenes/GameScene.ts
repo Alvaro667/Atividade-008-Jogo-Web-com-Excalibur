@@ -1,7 +1,8 @@
 import { DefaultLoader, Engine, ExcaliburGraphicsContext, Scene, SceneActivationContext, Vector } from "excalibur";
 import { Player } from "../actors/Player";
-import { WallNS } from "../actors/WallsNS";
-import { WallEW } from "../actors/WallsEW";
+//import { WallNS } from "../actors/WallsNS";
+//import { WallEW } from "../actors/WallsEW";
+import { Wall } from "../actors/Walls";
 
 
 export class GameScene extends Scene {
@@ -9,14 +10,14 @@ export class GameScene extends Scene {
         // Scene.onInitialize is where we recommend you perform the composition for your game
         const player = new Player();
         this.add(player); // Actors need to be added to a scene to be drawn
-        const wallN = new WallNS(new Vector(0, 0));
+        const wallN = new Wall(new Vector(0, 10), 3, 960);
         this.add(wallN);
-        const wallS = new WallNS(new Vector(0, 530));
+        const wallS = new Wall(new Vector(0, 540), 3, 960);
         this.add(wallS);
-        const wallW = new WallEW(new Vector(0, 0));
-        this.add(wallW);
-        const wallE = new WallEW(new Vector(950, 0));
+        const wallE = new Wall(new Vector(950, 0));
         this.add(wallE);
+        const wallW = new Wall(new Vector(0, 0));
+        this.add(wallW);
     }
 
     override onPreLoad(loader: DefaultLoader): void {

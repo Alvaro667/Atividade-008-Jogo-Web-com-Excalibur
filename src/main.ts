@@ -19,6 +19,8 @@ const game = new Engine({
   // fixedUpdateTimestep: 16 // Turn on fixed update timestep when consistent physic simulation is important
 });
 
+//game.toggleDebug(); // enables debug draw
+
 game.start('start', { // name of the start scene 'start'
   loader, // Optional loader (but needed for loading images/sounds)
   inTransition: new FadeInOut({ // Optional in transition
