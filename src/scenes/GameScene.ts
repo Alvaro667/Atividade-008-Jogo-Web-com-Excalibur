@@ -1,4 +1,4 @@
-import { DefaultLoader, Engine, ExcaliburGraphicsContext, Scene, SceneActivationContext, ImageSource, SpriteSheet, TileMap } from "excalibur";
+import { DefaultLoader, Engine, ExcaliburGraphicsContext, Scene, SceneActivationContext, SpriteSheet, TileMap } from "excalibur";
 import { Player } from "../actors/Player";
 import { Resources } from "../resources/resources";
 
@@ -26,21 +26,21 @@ export class GameScene extends Scene {
         });
         
         // Create a tilemap
-        const tilemap = new TileMap({
-            rows: 36,
-            columns: 64,
+        const tilemap = new TileMap({ //compare com as dimensões do mapa do jogo
+            rows: 9*3,
+            columns: 16*3,
             tileWidth: 16,
             tileHeight: 16,
         });
         
         // loop through tilemap cells
         for (let tile of tilemap.tiles) {
-            const sprite = rougeLikeSpriteSheet.getSprite(0, 0);
+            const floor = rougeLikeSpriteSheet.getSprite(0, 0);
             const wall = rougeLikeSpriteSheet.getSprite(1, 3);
-            if(wall && (tile.x == 0 || tile.y == 0 || tile.x == 63 || tile.y == 35)){
+            if(wall && (tile.x == 0 || tile.y == 0 || tile.x == 16*3 - 1 || tile.y == 9*3 - 1) && !((tile.x == 0 || tile.x == 16*3 - 1) && (tile.y >= 12 && tile.y <= 14)) && !((tile.y == 0 || tile.y == 9*3 - 1) && (tile.x >= 22 && tile.x <= 25))){
                 tile.addGraphic(wall);
                 tile.solid = true;
-            } else if(sprite) tile.addGraphic(sprite);
+            } else if(floor) tile.addGraphic(floor);
 
         }
         
