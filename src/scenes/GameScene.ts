@@ -33,15 +33,57 @@ export class GameScene extends Scene {
             tileHeight: 16,
         });
         
-        // loop through tilemap cells
-        for (let tile of tilemap.tiles) {
-            const floor = rougeLikeSpriteSheet.getSprite(0, 0);
-            const wall = rougeLikeSpriteSheet.getSprite(1, 3);
-            if(wall && (tile.x == 0 || tile.y == 0 || tile.x == 16*3 - 1 || tile.y == 9*3 - 1) && !((tile.x == 0 || tile.x == 16*3 - 1) && (tile.y >= 12 && tile.y <= 14)) && !((tile.y == 0 || tile.y == 9*3 - 1) && (tile.x >= 22 && tile.x <= 25))){
-                tile.addGraphic(wall);
-                tile.solid = true;
-            } else if(floor) tile.addGraphic(floor);
+        const floor = rougeLikeSpriteSheet.getSprite(0, 0);
+        const wall = rougeLikeSpriteSheet.getSprite(4, 3);
+        const door = rougeLikeSpriteSheet.getSprite(9, 3);
+        
+        const level: string[] = [
+            "wwwwwwwwwwwwwwwwwwwwwwddddwwwwwwwwwwwwwwwwwwwwww",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "dffffffffffffffffffffffffffffffffffffffffffffffd",
+            "dffffffffffffffffffffffffffffffffffffffffffffffd",
+            "dffffffffffffffffffffffffffffffffffffffffffffffd",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wffffffffffffffffffffffffffffffffffffffffffffffw",
+            "wwwwwwwwwwwwwwwwwwwwwwddddwwwwwwwwwwwwwwwwwwwwww"
+        ]
 
+        if(floor && wall && door){
+            for (let y = 0; y < level.length; y++) {
+                for (let x = 0; x < level[y].length; x++) {
+                    const tileChar = level[y][x];
+                    let tile = tilemap.getTile(x, y);
+                    if(tile == null){
+                        console.error("Tile nulo!");
+                    } else if(tileChar == 'f') tile.addGraphic(floor);
+                    else if(tileChar == 'w'){
+                        tile.addGraphic(wall);
+                        tile.solid = true;
+                    } else if(tileChar == 'd'){
+                        tile.addGraphic(door);
+                        tile.solid = true;
+                    }
+                }
+            }
         }
         
         // Scene.onInitialize is where we recommend you perform the composition for your game
