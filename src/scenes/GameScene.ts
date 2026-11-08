@@ -34,41 +34,19 @@ export class GameScene extends Scene {
         });
         
         const floor = rougeLikeSpriteSheet.getSprite(0, 0);
+        const floor1 = rougeLikeSpriteSheet.getSprite(0, 1);
+        const floor2 = rougeLikeSpriteSheet.getSprite(0, 2);
         const wall = rougeLikeSpriteSheet.getSprite(4, 3);
         const door = rougeLikeSpriteSheet.getSprite(9, 3);
         
-        /*var level: string[] = [
-            "                     w    w                     ",
-            " wwwwwwwwwwwwwwwwwwwwwddddwwwwwwwwwwwwwwwwwwwww ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            " d    w    w    w    w    w    w    w    w    d ",
-            " d    w    w    w    w    w    w    w    w    d ",
-            " d    w    w    w    w    w    w    w    w    d ",
-            " d    w    w    w    w    w    w    w    w    d ",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " wwwwwwwwwwwwwwwwwwwwwddddwwwwwwwwwwwwwwwwwwwww "
-        ]*/
-        
-        const seed: number = new Random(12345).integer(0, 10000);
+        var suaSeed = 123;
 
+        //preparação para criar o labirinto
+
+        const RNGmapa = new Random(suaSeed + 10);
+        
+        const D: number[][] = [[0, 1], [0, -1], [1, 0], [-1, 0]];
+        
         var labirinto: string[][] = [
             [" ","w"," ","w"," ","w"," ","w"," ","w"," ","w"," ","w"," ","w"," "],
             ["w","w","w","w","w","w","w","w","w","w","w","w","w","w","w","w","w"],
@@ -80,16 +58,13 @@ export class GameScene extends Scene {
             ["w","w","w","w","w","w","w","w","w","w","w","w","w","w","w","w","w"],   
             [" ","w"," ","w"," ","w"," ","w"," ","w"," ","w"," ","w"," ","w"," "],
         ]
-
-        var visitados: boolean[][] = [];
         
+        var visitados: boolean[][] = [];
         for(let linha = 0; linha < (labirinto.length + 1)/2; linha++){
             visitados[linha] = [];
             for(let coluna = 0; coluna < (labirinto[0].length)/2; coluna++) visitados[linha][coluna] = false;
         }
         
-        
-        const D: number[][] = [[0, 1], [0, -1], [1, 0], [-1, 0]];
         
         function celValida(matriz: any[][], linha: number, coluna: number): boolean{
             if(linha < 0 || linha >= matriz.length || coluna < 0 || coluna >= matriz[0].length) return false;
@@ -102,27 +77,14 @@ export class GameScene extends Scene {
             return numero;
         }
 
-        function direcaoVizinho(matriz: string[][], visitados: boolean[][], lCel: number, cCel: number): number[] { // use as coordenadas do booleano
-            let rota = new Random(seed + matriz.length * lCel + cCel).integer(0, 3);
-            let direcao: number[] = [0, 0];
-            let achouValido: boolean = false;
-            loop: for(let tentativas = 0; tentativas < 4; tentativas++){
-                direcao = [...D[rota]];
-                if(! celValida(visitados, lCel + direcao[0], cCel + direcao[1]) || visitados[lCel + direcao[0]][cCel + direcao[1]]){
-                    direcao = [0, 0];
-                    rota = (rota + 1)%4;
-                    continue loop;
-                } else {
-                    achouValido = true;
-                    break loop;
-                }
-            }
-            if(!achouValido){
-                console.log("Não achou rota válida");
-                direcao = [0, 0];
-            }
-            return direcao;
+        function direcaoVizinho(matriz: string[][], lCel: number, cCel: number){//base: coordenadas do labirinto
+            let direcoes: number[] = [];
+            const valor = Number(matriz[lCel][cCel]);
+            for(let i = 0; i < D.length; i++)if(((valor >> i) & 1)) direcoes[direcoes.length] = i;
+            return [...D[direcoes[RNGmapa.integer(0, direcoes.length - 1)]]];
         }
+
+        //escolhe a célula inicial, mas poderia ser escolhida ao acaso
 
         var lCel = 0;
         var cCel = 0;
@@ -130,6 +92,7 @@ export class GameScene extends Scene {
         
         labirinto[lCel][cCel] = String(nVizinhos(visitados, lCel/2, cCel/2)); // divide por 2 para usar as coordenadas da matriz de visitados, que é menor que a do labirinto
         
+        //geração do labirinto
         
         while(visitados.some(linha => linha.includes(false))){
             
@@ -138,7 +101,7 @@ export class GameScene extends Scene {
             while(nVizinhos(visitados, lCel/2, cCel/2) > 0){
 
 
-                direcao = direcaoVizinho(labirinto, visitados, lCel/2, cCel/2);
+                direcao = direcaoVizinho(labirinto, lCel, cCel);
 
                 labirinto[lCel + direcao[0]][cCel + direcao[1]] = "0"; //parede vira chão
 
@@ -165,11 +128,15 @@ export class GameScene extends Scene {
 
         for(let linha = 0; linha < labirinto.length; linha++) for(let coluna = 0; coluna < labirinto[0].length; coluna++) if(Number(labirinto[linha][coluna]) == 0) labirinto[linha][coluna] = " ";
 
-        
-        console.log(labirinto);
-        
-        console.log(visitados);
+        for(let linha = 0; linha < labirinto.length; linha+=2) for(let coluna = 1; coluna < labirinto[0].length; coluna+=2) if(RNGmapa.integer(1, 100) < 60) labirinto[linha][coluna] = " ";
+        for(let linha = 1; linha < labirinto.length; linha+=2) for(let coluna = 0; coluna < labirinto[0].length; coluna+=2) if(RNGmapa.integer(1, 100) < 60) labirinto[linha][coluna] = " ";
+        for(let linha = 1; linha < labirinto.length; linha+=2) for(let coluna = 1; coluna < labirinto[0].length; coluna+=2) {
+            var conectada = false;
+            for (let k = 0; k < D.length; k++) if(celValida(labirinto, linha + D[k][0], coluna + D[k][1]) && labirinto[linha + D[k][0]][coluna + D[k][1]] == "w") conectada = true;
+            if(! conectada) labirinto[linha][coluna] = " ";
+        }
 
+        //conversão de labirinto para level
 
         var level: string[][] = [];
 
@@ -177,19 +144,6 @@ export class GameScene extends Scene {
             level[linha] = [];
             for(let coluna = 0; coluna < 48; coluna++) level[linha][coluna] = " ";
         }
-
-        /*for(let linha = 0; linha < labirinto.length; linha+=2) { //linhas e colunas do labirinto
-            for(let coluna = 0; coluna < labirinto[0].length; coluna+=2) {
-                console.log("Valor: " + labirinto[linha][coluna] + ", linha: " + linha + ", coluna: " + coluna);
-                for(let repeteCol = 0; repeteCol < 4; repeteCol++){
-                    console.log("level[" + (5*(linha/2) + 2) + "][" + (5*(coluna/2) + 2 + repeteCol) + "] = labirinto[" + linha + "][" + coluna + "]");
-                    level[5*(linha/2) + 2][5*(coluna/2) + 2 + repeteCol] = labirinto[linha][coluna];
-                }
-            }
-            for(let repeteLin = 1; repeteLin < 4; repeteLin++){
-                level[5*(linha/2) + 2 + repeteLin] = [...level[5*(linha/2) + 2]];
-            }
-        }*/
 
         for(let linha = 0; linha < labirinto.length; linha+=2){
             for(let coluna = 1; coluna < labirinto[0].length; coluna+=2) level[5*(linha/2) + 2][5*(1 + coluna)/2 + 1] = labirinto[linha][coluna];
@@ -199,77 +153,31 @@ export class GameScene extends Scene {
         }
 
         for(let linha = 1; linha < labirinto.length; linha+=2){
-            for(let coluna = 1; coluna < labirinto[0].length; coluna+=2) level[5*(1 + linha)/2 + 1][5*(1 + coluna)/2 + 1] = "w";
+            for(let coluna = 1; coluna < labirinto[0].length; coluna+=2) level[5*(1 + linha)/2 + 1][5*(1 + coluna)/2 + 1] = labirinto[linha][coluna];
             for(let coluna = 0; coluna < labirinto[0].length; coluna+=2) for(let repeteCol = 0; repeteCol < 4; repeteCol++) level[5*(1 + linha)/2 + 1][5*(coluna/2) + 2 + repeteCol] = labirinto[linha][coluna];
         }
+
+        level[0][21] = level[0][26] = "w";
+        level[11][0] = level[16][0] = "w";
+        level[11][47] = level[16][47] = "w";
+        for(let coluna = 1; coluna < level[0].length - 1; coluna++) level[1][coluna] = "w"
+        for(let linha = 1; linha < level.length; linha++) level[linha][1] = "w";
+        for(let linha = 1; linha < level.length; linha++) level[linha][46] = "w";
+        for(let coluna = 1; coluna < level[0].length - 1; coluna++) level[26][coluna] = "w"
+        for(let coluna = 22; coluna <= 25; coluna++) level[1][coluna] = "d";
+        for(let linha = 12; linha <= 15; linha++) level[linha][1] = "d";
+        for(let linha = 12; linha <= 15; linha++) level[linha][46] = "d";
+        for(let coluna = 22; coluna <= 25; coluna++) level[26][coluna] = "d";
+
+
         
-        console.log(labirinto);
+
+
+
+        //fim da conversão de labirinto para level
+
+        const RNGtiles = new Random(suaSeed + 30);
         
-        console.log(level);
-
-        //console.log(level);
-
-        /*
-        (0, 17) [' ', 'w', ' ', ' ', ' ', 'w', ' ', ' ', ' ', ' ', ' ', 'w', ' ', ' ', ' ', ' ', ' '] l = 0, c = 0 até l = 0, c = 16
-        (1, 17) [' ', 'w', 'w', 'w', ' ', 'w', 'w', 'w', 'w', 'w', ' ', 'w', ' ', 'w', 'w', 'w', ' '] 
-        (2, 17) [' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', 'w', ' ', 'w', ' ', ' ', ' ', 'w', ' ']
-        (3, 17) ['w', 'w', 'w', 'w', 'w', 'w', 'w', 'w', ' ', 'w', ' ', 'w', 'w', 'w', ' ', 'w', ' ']
-        (4, 17) [' ', ' ', ' ', ' ', ' ', ' ', ' ', 'w', ' ', ' ', ' ', ' ', ' ', 'w', ' ', 'w', ' '] 
-        (5, 17) [' ', 'w', 'w', 'w', 'w', 'w', ' ', 'w', 'w', 'w', 'w', 'w', ' ', 'w', ' ', 'w', ' ']
-        (6, 17) [' ', ' ', ' ', ' ', ' ', 'w', ' ', ' ', ' ', ' ', ' ', 'w', ' ', ' ', ' ', 'w', ' ']
-        (7, 17) ['w', 'w', 'w', 'w', ' ', 'w', 'w', 'w', 'w', 'w', ' ', 'w', 'w', 'w', 'w', 'w', ' ']
-        (8, 17) [' ', ' ', ' ', ' ', ' ', 'w', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '] l = 8, c = 0 até l = 8, c = 16
-                l = 0, c = 0 até l = 8, c = 0                         l = 0, c = 16 até l = 8, c = 16       linhas(0 ~ 8) colunas(0 ~ 16)
-        */
-
-        // linha 0 => 2~5, 1 => 6, 2 => 7~10, 3 => 11, 4 => 12~15 
-
-
-        /*var level: string[] = [
-            "                     w    w                     ",
-            " wwwwwwwwwwwwwwwwwwwwwddddwwwwwwwwwwwwwwwwwwwww ",
-            " w    w    w    w    w    w    w    w    w    w ", l = 2, c = 2, 0, 0 no labirinto
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ", l = 5, c = 5
-            " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww ", l = 6, c = 2, 1, 0 no labirinto
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            " d    w    w    w    w    w    w    w    w    d ",
-            " d    w    w    w    w    w    w    w    w    d ",
-            " d    w    w    w    w    w    w    w    w    d ",
-            " d    w    w    w    w    w    w    w    w    d ",
-            "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " w    w    w    w    w    w    w    w    w    w ",
-            " wwwwwwwwwwwwwwwwwwwwwddddwwwwwwwwwwwwwwwwwwwww "       linhas(2 ~ 25) colunas(2 ~ 45)     
-
-            0,0  => 2,2 ~ 5,5
-            0,1  => 2,6 ~ 5,6
-            1,0  => 6,2 ~ 6,5
-            1,1  => 6,6
-            2,0  => 7,2 ~ 10,5
-            2,1  => 7,6 ~ 10,6
-            2,2  => 7,7 ~ 10,10
-            8,16 => 22,42 ~ 25,45
-
-        ]*/
-
-
-
-
-
-
         if(floor && wall && door){
             for(let y = 0; y < level.length; y++) {
                 for(let x = 0; x < level[y].length; x++) {
@@ -279,7 +187,10 @@ export class GameScene extends Scene {
                         console.error("Tile nulo!");
                     } else switch(tileChar) {
                         case ' ':
-                            tile.addGraphic(floor);
+                            var chance = RNGtiles.integer(1, 100);
+                            if(chance <= 2) tile.addGraphic(floor1);
+                            else if(chance > 98) tile.addGraphic(floor2);
+                            else tile.addGraphic(floor);
                             break;
                         case 'w':
                             tile.addGraphic(wall);
