@@ -1,44 +1,53 @@
-import { DefaultLoader, Engine, ExcaliburGraphicsContext, Scene, SceneActivationContext } from "excalibur";
+import {
+  DefaultLoader,
+  Engine,
+  ExcaliburGraphicsContext,
+  Scene,
+  SceneActivationContext
+} from "excalibur";
+
 import { Player } from "../actors/Player";
 import { AimIndicator } from "../actors/AimIndicator";
-
+import { AmmoIndicator } from "../actors/AmmoIndicator";
 
 export class GameScene extends Scene {
-    override onInitialize(engine: Engine): void {
-        const aimIndicator = new AimIndicator();
-        // Scene.onInitialize is where we recommend you perform the composition for your game
-        const player = new Player(aimIndicator);
-        this.add(player); // Actors need to be added to a scene to be drawn
-        this.add(aimIndicator);
-    }
 
-    override onPreLoad(loader: DefaultLoader): void {
-        // Add any scene specific resources to load
-    }
+  override onInitialize(engine: Engine): void {
+    const aimIndicator = new AimIndicator();
+    const ammoIndicator = new AmmoIndicator();
 
-    override onActivate(context: SceneActivationContext<unknown>): void {
-        // Called when Excalibur transitions to this scene
-        // Only 1 scene is active at a time
-    }
+    const player = new Player(aimIndicator, ammoIndicator);
 
-    override onDeactivate(context: SceneActivationContext): void {
-        // Called when Excalibur transitions away from this scene
-        // Only 1 scene is active at a time
-    }
+    this.add(player);
+    this.add(aimIndicator);
+    this.add(ammoIndicator);
+  }
 
-    override onPreUpdate(engine: Engine, elapsedMs: number): void {
-        // Called before anything updates in the scene
-    }
+  override onPreLoad(loader: DefaultLoader): void {
+    // Add any scene specific resources to load
+  }
 
-    override onPostUpdate(engine: Engine, elapsedMs: number): void {
-        // Called after everything updates in the scene
-    }
+  override onActivate(context: SceneActivationContext<unknown>): void {
+    // Called when Excalibur transitions to this scene
+  }
 
-    override onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
-        // Called before Excalibur draws to the screen
-    }
+  override onDeactivate(context: SceneActivationContext): void {
+    // Called when Excalibur transitions away from this scene
+  }
 
-    override onPostDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
-        // Called after Excalibur draws to the screen
-    }
+  override onPreUpdate(engine: Engine, elapsedMs: number): void {
+    // Called before anything updates in the scene
+  }
+
+  override onPostUpdate(engine: Engine, elapsedMs: number): void {
+    // Called after everything updates in the scene
+  }
+
+  override onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
+    // Called before Excalibur draws to the screen
+  }
+
+  override onPostDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
+    // Called after Excalibur draws to the screen
+  }
 }
