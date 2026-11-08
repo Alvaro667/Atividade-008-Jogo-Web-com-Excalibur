@@ -1,11 +1,15 @@
 import { DefaultLoader, Engine, ExcaliburGraphicsContext, Scene, SceneActivationContext } from "excalibur";
 import { Player } from "../actors/Player";
+import { AimIndicator } from "../actors/AimIndicator";
+
 
 export class GameScene extends Scene {
     override onInitialize(engine: Engine): void {
+        const aimIndicator = new AimIndicator();
         // Scene.onInitialize is where we recommend you perform the composition for your game
-        const player = new Player();
+        const player = new Player(aimIndicator);
         this.add(player); // Actors need to be added to a scene to be drawn
+        this.add(aimIndicator);
     }
 
     override onPreLoad(loader: DefaultLoader): void {
