@@ -1,4 +1,4 @@
-import { Color, DisplayMode, Engine, FadeInOut } from "excalibur";
+import { Color, DisplayMode, Engine, FadeInOut, SolverStrategy } from "excalibur";
 import { loader } from "./resources/resources";
 import { GameScene } from "./scenes/GameScene";
 
@@ -9,7 +9,12 @@ const game = new Engine({
   pixelArt: true,
   scenes: {
     start: GameScene
+  },
+  physics: {
+    solver: SolverStrategy.Realistic,
+    substep: 5 // Sub step the physics simulation for more robust simulations
   }
+  // fixedUpdateTimestep: 16 // Turn on fixed update timestep when consistent physic simulation is important
 });
 
 game.start("start", {
