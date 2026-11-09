@@ -5,8 +5,8 @@ import { GameScene } from "./scenes/GameScene";
 // Goal is to keep main.ts small and just enough to configure the engine
 
 const game = new Engine({
-  width: 800, // Logical width and height in game pixels
-  height: 600,
+  width: 16*16*3, // Logical width and height in game pixels
+  height: 16*9*3, //16: tamanho dos tiles; 16*9: proporção do mapa; 4: escala (pode ser alterado)
   displayMode: DisplayMode.FitScreenAndFill, // Display mode tells excalibur how to fill the window
   pixelArt: true, // pixelArt will turn on the correct settings to render pixel art without jaggies or shimmering artifacts
   scenes: {
@@ -18,6 +18,8 @@ const game = new Engine({
   // },
   // fixedUpdateTimestep: 16 // Turn on fixed update timestep when consistent physic simulation is important
 });
+
+//game.toggleDebug(); // enables debug draw
 
 game.start('start', { // name of the start scene 'start'
   loader, // Optional loader (but needed for loading images/sounds)

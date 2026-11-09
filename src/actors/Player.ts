@@ -25,6 +25,7 @@ export class Player extends Actor {
       pos: vec(150, 150),
       width: 100,
       height: 100,
+      z: 5,
       // anchor: vec(0, 0), // Actors default center colliders and graphics with anchor (0.5, 0.5)
       // collisionType: CollisionType.Active, // Collision Type Active means this participates in collisions read more https://excaliburjs.com/docs/collisiontypes
     });
