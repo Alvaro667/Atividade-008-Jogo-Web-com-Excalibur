@@ -9,6 +9,7 @@ import {
 import { Player } from "../actors/Player";
 import { AimIndicator } from "../actors/AimIndicator";
 import { AmmoIndicator } from "../actors/AmmoIndicator";
+import { Zombie } from "../actors/Zombie";
 
 export class GameScene extends Scene {
 
@@ -18,7 +19,10 @@ export class GameScene extends Scene {
 
     const player = new Player(aimIndicator, ammoIndicator);
 
+    const zombie = new Zombie(player);
+
     this.add(player);
+    this.add(zombie);
     this.add(aimIndicator);
     this.add(ammoIndicator);
   }
