@@ -1,4 +1,12 @@
-import { Actor, Animation, Shape, vec, Engine, CollisionType } from "excalibur";
+import {
+  Actor,
+  Animation,
+  Shape,
+  vec,
+  Engine,
+  CollisionType,
+  Vector,
+} from "excalibur";
 
 import { Player } from "./Player";
 import { ZOMBIE_CONFIG } from "../config/ZombieConfig";
@@ -16,6 +24,9 @@ export class Zombie extends Actor {
 
   private player: Player;
 
+  private movementSpeed: number;
+  private attackDamage: number;
+
   private state: ZombieState = "idle";
   private stateTimer = 0;
 
@@ -27,25 +38,31 @@ export class Zombie extends Actor {
   private isHurt = false;
   private isDying = false;
 
-  constructor(player: Player) {
+  constructor(
+    player: Player,
+    position: Vector = vec(500, 300),
+    speed: number = ZOMBIE_CONFIG.speed,
+    damage: number = ZOMBIE_CONFIG.damage,
+  ) {
     super({
       name: "Zombie",
-      pos: vec(500, 300),
+      pos: position,
       width: ZOMBIE_CONFIG.width,
       height: ZOMBIE_CONFIG.height,
       collisionType: CollisionType.Active,
     });
 
-    this.collider.set(Shape.Circle(6));
+    this.collider.set(Shape.Box(10, 15));
 
     this.player = player;
+    this.movementSpeed = speed;
+    this.attackDamage = damage;
 
     this.addTag("enemy");
 
     this.setupAnimations();
 
     this.scale = vec(2, 2);
-    
   }
 
   private setupAnimations(): void {
@@ -119,7 +136,7 @@ export class Zombie extends Actor {
           const currentDistance = this.player.pos.sub(this.pos).magnitude;
 
           if (currentDistance <= ZOMBIE_CONFIG.attackRange) {
-            this.player.takeDamage(ZOMBIE_CONFIG.damage);
+            this.player.takeDamage(this.attackDamage);
           }
 
           this.state = "cooldown";
@@ -156,7 +173,7 @@ export class Zombie extends Actor {
       return;
     }
 
-    this.vel = direction.normalize().scale(ZOMBIE_CONFIG.speed);
+    this.vel = direction.normalize().scale(this.movementSpeed);
   }
 
   private updateFacing(): void {

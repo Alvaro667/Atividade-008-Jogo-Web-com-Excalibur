@@ -1,10 +1,10 @@
 export const PLAYER_CONFIG = {
-  width: 100,
-  height: 100,
+  width: 30,
+  height: 30,
   speed: 100,
   acceleration: 0,
-  colliderWidth: 80,
-  colliderHeight: 80,
+  colliderWidth: 30,
+  colliderHeight: 30,
   maxHealth: 3,
 
   dodgeDistance: 100,

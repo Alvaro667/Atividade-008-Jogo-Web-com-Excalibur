@@ -6,7 +6,8 @@ import {
   Scene,
   SceneActivationContext,
   SpriteSheet,
-  TileMap
+  TileMap,
+
 } from "excalibur";
 
 import { Player } from "../actors/Player";
@@ -14,7 +15,12 @@ import { AimIndicator } from "../actors/AimIndicator";
 import { AmmoIndicator } from "../actors/AmmoIndicator";
 import { Zombie } from "../actors/Zombie";
 import { Resources } from "../resources/resources";
+import { DifficultySystem } from "../systems/DifficultySystem";
+import { EnemySpawner } from "../systems/EnemySpawner";
+
 export class GameScene extends Scene {
+
+    private currentPhase = 1;
     override onInitialize(engine: Engine): void {
         
         // Load your favorite tileset (maybe from Kenney.nl)
@@ -50,8 +56,12 @@ export class GameScene extends Scene {
         const floor2 = rougeLikeSpriteSheet.getSprite(0, 2);
         const wall = rougeLikeSpriteSheet.getSprite(4, 3);
         const door = rougeLikeSpriteSheet.getSprite(9, 3);
+
+        const random = new Random()
+
+        const randomizer = random.integer(1, 1000000);
         
-        var suaSeed = 123;
+        const suaSeed = randomizer + (this.currentPhase - 1) * 1000;
 
         //preparação para criar o labirinto
 
@@ -226,13 +236,48 @@ export class GameScene extends Scene {
         const ammoIndicator = new AmmoIndicator();
 
         const player = new Player(aimIndicator, ammoIndicator);
-        const zombie = new Zombie(player);
 
         this.add(tilemap);
         this.add(player);
         this.add(aimIndicator);
         this.add(ammoIndicator);
+
+        // Calcula a dificuldade da fase atual.
+        const difficulty = DifficultySystem.getDifficulty(
+        this.currentPhase
+        );
+
+        // Obtém posições válidas para os inimigos.
+        const spawnPositions = EnemySpawner.getSpawnPositions(
+        level,
+        difficulty.enemyCount,
+        player.pos,
+        suaSeed + this.currentPhase * 100
+        );
+
+        // Cria os zumbis nas posições selecionadas.
+        for (const position of spawnPositions) {
+        const zombie = new Zombie(
+            player,
+            position,
+            difficulty.enemySpeed,
+            difficulty.enemyDamage
+        );
+
         this.add(zombie);
+        }
+
+        console.log(`Fase: ${this.currentPhase}`);
+        console.log(`Zumbis: ${spawnPositions.length}`);
+        console.log(`Velocidade: ${difficulty.enemySpeed}`);
+        console.log(`Dano: ${difficulty.enemyDamage}`);
+
+        if (spawnPositions.length < difficulty.enemyCount) {
+        console.warn(
+            "Não há espaço suficiente para todos os zumbis desta fase."
+        );
+        }
+
     }
 
   override onPreLoad(loader: DefaultLoader): void {
