@@ -4,7 +4,7 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ESNext", "DOM"],
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "strict": true,
     "skipLibCheck": true,
     "sourceMap": true,
@@ -15,5 +15,9 @@
     "noUnusedParameters": false,
     "noImplicitReturns": true
   },
-  "include": ["./src"]
+  "include": ["./src"],
+  "exclude": 
+  [
+    "src/resources/kenney_tiny-dungeon/Tiled/**/*.tsx"
+  ]
 }
