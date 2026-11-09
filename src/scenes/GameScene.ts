@@ -7,6 +7,7 @@ import {
   SceneActivationContext,
   SpriteSheet,
   TileMap,
+  EventEmitter,
 } from "excalibur";
 
 import { Player } from "../actors/Player";
@@ -19,7 +20,16 @@ import { EnemySpawner } from "../systems/EnemySpawner";
 import { Pathfinding } from "../systems/Pathfinding";
 
 export class GameScene extends Scene {
-  private currentPhase = 3;
+  private currentPhase = 1;
+
+  // ! alvaro : signal da fase
+  readonly phaseSignals = new EventEmitter<{
+    phasecleared: { phase: number };
+  }>();
+
+  private remainingZombies = 0;
+  private phaseCleared = false;
+
   override onInitialize(engine: Engine): void {
     // Load your favorite tileset (maybe from Kenney.nl)
     const kenneyRougeLikePack = Resources.Tiles;
@@ -471,17 +481,30 @@ export class GameScene extends Scene {
       suaSeed + this.currentPhase * 100,
     );
 
+    // ! Alvaro: Teste pra verificar se a signal de fase está funcionando corretamente. 
+    // ! Você deve colocar a lógica que abre as portas dentro desse método.
+
+    this.phaseSignals.on("phasecleared", ({ phase }) => {
+        console.log(`FASE ${phase} CONCLUÍDA!`);
+        console.log("Todas as portas podem ser abertas.");
+    });
+
+    this.remainingZombies = spawnPositions.length;
+    this.phaseCleared = false;
+
     for (const position of spawnPositions) {
-      const zombie = new Zombie(
+    const zombie = new Zombie(
         player,
         position,
         pathfinding,
         difficulty.enemySpeed,
-        difficulty.enemyDamage,
-      );
+        difficulty.enemyDamage
+    );
 
-      this.add(zombie);
-    }
+    this.registerZombieDeath(zombie);
+
+    this.add(zombie);
+}
 
     console.log(`Fase: ${this.currentPhase}`);
     console.log(`Zumbis: ${spawnPositions.length}`);
@@ -519,5 +542,27 @@ export class GameScene extends Scene {
 
   override onPostDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
     // Called after Excalibur draws to the screen
+  }
+
+  private registerZombieDeath(zombie: Zombie): void {
+    zombie.once("kill", () => {
+      if (this.phaseCleared) {
+        return;
+      }
+
+      this.remainingZombies--;
+
+      console.log(
+        `Zumbis restantes: ${this.remainingZombies}`
+      );
+
+      if (this.remainingZombies === 0) {
+        this.phaseCleared = true;
+
+        this.phaseSignals.emit("phasecleared", {
+          phase: this.currentPhase
+        });
+      }
+    });
   }
 }

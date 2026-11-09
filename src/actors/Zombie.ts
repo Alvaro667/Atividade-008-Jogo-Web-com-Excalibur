@@ -46,7 +46,6 @@ export class Zombie extends Actor {
   private pathTimer = 0;
   private readonly navigationRadius = 16;
   private readonly pathUpdateInterval = 350;
-  private readonly waypointThreshold = 5;
   private readonly stuckCheckInterval = 450;
   private readonly minimumProgress = 3;
 
