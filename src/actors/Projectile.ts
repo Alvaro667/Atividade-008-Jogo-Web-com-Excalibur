@@ -1,47 +1,51 @@
-import { Actor, Vector, Color, CollisionType 
-    //,Engine 
+import {
+  Actor,
+  Vector,
+  Color,
+  CollisionType,
+  //,Engine
 } from "excalibur";
+import { Zombie } from "./Zombie";
 
 export class Projectile extends Actor {
   private direction: Vector;
   private speed = 500;
-  
- // private damage = 1;
+  private damage = 1;
+  private onEnemyKilled: () => void;
 
-  constructor
-  (
-  position: Vector,
-  direction: Vector,
-  ) 
-{
+  constructor(position: Vector, direction: Vector, onEnemyKilled: () => void) {
     super({
       name: "Projectile",
       pos: position,
       width: 8,
       height: 8,
       color: Color.Yellow,
-      collisionType: CollisionType.Passive
+      collisionType: CollisionType.Passive,
     });
 
     this.direction = direction.normalize();
+    this.onEnemyKilled = onEnemyKilled;
+    
+    this.on("collisionstart", (event) => {
+      const target = event.other.owner;
 
-    this.on("collisionstart", (event) => 
-    {
-        const target = event.other.owner;
+      if (target.name === "Player") {
+        return;
+      }
 
-         if (target.name === "Player") return;
+      if (target instanceof Zombie) {
+        const wasKilled = target.takeDamage(this.damage);
 
-         if (target.hasTag("enemy")) 
-        {
-            //this.onEnemyKilled();
+        if (wasKilled) {
+          this.onEnemyKilled();
         }
+      }
 
-     this.kill();
+      this.kill();
     });
   }
 
-  override onPreUpdate(): void 
-  {
+  override onPreUpdate(): void {
     this.vel = this.direction.scale(this.speed);
   }
 }

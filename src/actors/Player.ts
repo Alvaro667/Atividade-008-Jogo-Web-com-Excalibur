@@ -137,4 +137,16 @@ export class Player extends Actor {
 
     this.weapon.shoot(engine, this.pos, direction.normalize());
   }
+
+  // ! ParaPedro: Adicionei o método takeDamage para o jogador, que reduz a vida do jogador quando ele é atingido por um zumbi. Se a vida do jogador chegar a 0, ele não pode mais receber dano.
+  // ! é experimental, então pode alterar se achar necessário. 
+  takeDamage(amount: number): void {
+  if (this.health <= 0 || amount <= 0) {
+    return;
+  }
+
+  this.health = Math.max(0, this.health - amount);
+
+  console.log(`Vida do jogador: ${this.health}`);
+  }
 }
