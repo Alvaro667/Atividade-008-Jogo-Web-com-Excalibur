@@ -17,14 +17,13 @@ export class Weapon
 
     if (wasLastAmmo === null) return;
 
-  const projectile = new Projectile(position, direction);
+    const projectile = new Projectile(position, direction, () =>  this.ammoSystem.recoverOnKill(wasLastAmmo),
+    );
 
-  engine.add(projectile);
+    engine.add(projectile);
+  }
 
-}
-
-  update(elapsedMs: number, isCharging: boolean): void 
-  {
+  update(elapsedMs: number, isCharging: boolean): void {
     this.ammoSystem.update(elapsedMs, isCharging);
   }
 }
