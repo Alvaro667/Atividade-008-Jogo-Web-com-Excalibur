@@ -25,7 +25,7 @@ export class Projectile extends Actor {
 
     this.direction = direction.normalize();
     this.onEnemyKilled = onEnemyKilled;
-    
+
     this.on("collisionstart", (event) => {
       const target = event.other.owner;
 
@@ -34,6 +34,10 @@ export class Projectile extends Actor {
       }
 
       if (target instanceof Zombie) {
+        if (target.health <= 0) {
+          return;
+        }
+
         const wasKilled = target.takeDamage(this.damage);
 
         if (wasKilled) {

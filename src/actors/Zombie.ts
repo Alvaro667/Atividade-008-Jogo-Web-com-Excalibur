@@ -10,6 +10,7 @@ import {
 
 import { Player } from "./Player";
 import { ZOMBIE_CONFIG } from "../config/ZombieConfig";
+import { Pathfinding } from "../systems/Pathfinding";
 
 import {
   createZombieAnimations,
@@ -23,6 +24,8 @@ export class Zombie extends Actor {
   health = ZOMBIE_CONFIG.maxHealth;
 
   private player: Player;
+  private isTouchingPlayer = false;
+  private pathfinding: Pathfinding;
 
   private movementSpeed: number;
   private attackDamage: number;
@@ -38,11 +41,28 @@ export class Zombie extends Actor {
   private isHurt = false;
   private isDying = false;
 
+  private path: Vector[] = [];
+  private pathIndex = 0;
+  private pathTimer = 0;
+  private readonly navigationRadius = 16;
+  private readonly pathUpdateInterval = 350;
+  private readonly stuckCheckInterval = 450;
+  private readonly minimumProgress = 3;
+
+  private stuckTimer = 0;
+  private lastCheckedPosition: Vector | null = null;
+
+  private blockedWaypoint: string | null = null;
+  private blockedWaypointTimer = 0;
+
+  private lastTargetCell = "";
+
   constructor(
     player: Player,
-    position: Vector = vec(500, 300),
-    speed: number = ZOMBIE_CONFIG.speed,
-    damage: number = ZOMBIE_CONFIG.damage,
+    position: Vector,
+    pathfinding: Pathfinding,
+    speed = ZOMBIE_CONFIG.speed,
+    damage = ZOMBIE_CONFIG.damage,
   ) {
     super({
       name: "Zombie",
@@ -52,17 +72,31 @@ export class Zombie extends Actor {
       collisionType: CollisionType.Active,
     });
 
-    this.collider.set(Shape.Box(10, 15));
-
     this.player = player;
+
+    this.on("collisionstart", (event) => {
+      if (event.other.owner === this.player && !this.isDying) {
+        this.isTouchingPlayer = true;
+      }
+    });
+
+    this.on("collisionend", (event) => {
+      if (event.other.owner === this.player) {
+        this.isTouchingPlayer = false;
+      }
+    });
+
+    this.pathfinding = pathfinding;
+
     this.movementSpeed = speed;
     this.attackDamage = damage;
+
+    this.collider.set(Shape.Circle(8));
+    this.scale = vec(2, 2);
 
     this.addTag("enemy");
 
     this.setupAnimations();
-
-    this.scale = vec(2, 2);
   }
 
   private setupAnimations(): void {
@@ -101,12 +135,15 @@ export class Zombie extends Actor {
     const direction = this.player.pos.sub(this.pos);
     const distance = direction.magnitude;
 
+    const canAttack = this.isTouchingPlayer;
+
     switch (this.state) {
       case "idle":
         this.vel = vec(0, 0);
 
         if (distance <= ZOMBIE_CONFIG.detectionRange) {
           this.state = "chasing";
+          this.pathTimer = this.pathUpdateInterval;
         }
 
         break;
@@ -115,17 +152,20 @@ export class Zombie extends Actor {
         if (distance > ZOMBIE_CONFIG.detectionRange) {
           this.state = "idle";
           this.vel = vec(0, 0);
+          this.clearPath();
           break;
         }
 
-        if (distance <= ZOMBIE_CONFIG.attackRange) {
+        if (canAttack) {
           this.state = "attacking";
           this.stateTimer = 0;
           this.vel = vec(0, 0);
+          this.faceDirection(direction);
+          this.clearPath();
           break;
         }
 
-        this.moveTowardPlayer(direction);
+        this.followPath(elapsedMs);
         break;
 
       case "attacking":
@@ -133,9 +173,7 @@ export class Zombie extends Actor {
         this.stateTimer += elapsedMs;
 
         if (this.stateTimer >= ZOMBIE_CONFIG.attackWindup) {
-          const currentDistance = this.player.pos.sub(this.pos).magnitude;
-
-          if (currentDistance <= ZOMBIE_CONFIG.attackRange) {
+          if (this.isTouchingPlayer) {
             this.player.takeDamage(this.attackDamage);
           }
 
@@ -148,8 +186,8 @@ export class Zombie extends Actor {
       case "cooldown":
         this.stateTimer += elapsedMs;
 
-        if (distance > ZOMBIE_CONFIG.attackRange) {
-          this.moveTowardPlayer(direction);
+        if (!canAttack) {
+          this.followPath(elapsedMs);
         } else {
           this.vel = vec(0, 0);
         }
@@ -167,25 +205,100 @@ export class Zombie extends Actor {
     this.updateAnimation();
   }
 
-  private moveTowardPlayer(direction: ReturnType<typeof vec>): void {
-    if (direction.magnitude === 0) {
-      this.vel = vec(0, 0);
+  private followPath(elapsedMs: number): void {
+    this.pathTimer += elapsedMs;
+
+    if (this.blockedWaypointTimer > 0) {
+      this.blockedWaypointTimer -= elapsedMs;
+
+      if (this.blockedWaypointTimer <= 0) {
+        this.blockedWaypoint = null;
+      }
+    }
+
+    const playerCellX = Math.floor(this.player.pos.x / 16);
+
+    const playerCellY = Math.floor(this.player.pos.y / 16);
+
+    const targetCell = `${playerCellX},${playerCellY}`;
+
+    const needsNewPath =
+      this.pathTimer >= this.pathUpdateInterval ||
+      targetCell !== this.lastTargetCell;
+
+    if (needsNewPath) {
+      let newPath = this.pathfinding.findPath(
+        this.pos,
+        this.player.pos,
+        this.navigationRadius,
+        this.blockedWaypoint,
+      );
+
+      if (newPath.length === 0 && this.blockedWaypoint) {
+        newPath = this.pathfinding.findPath(
+          this.pos,
+          this.player.pos,
+          this.navigationRadius,
+        );
+      }
+
+      this.path = newPath;
+      this.pathIndex = 0;
+      this.pathTimer = 0;
+      this.lastTargetCell = targetCell;
+    }
+
+    while (this.pathIndex < this.path.length) {
+      const waypoint = this.path[this.pathIndex];
+      const difference = waypoint.sub(this.pos);
+      const distance = difference.magnitude;
+
+      if (distance <= 4) {
+        this.pathIndex++;
+        continue;
+      }
+
+      const deltaSeconds = Math.max(elapsedMs / 1000, 0.001);
+
+      const speed = Math.min(this.movementSpeed, distance / deltaSeconds);
+
+      this.vel = difference.normalize().scale(speed);
+
+      this.checkIfStuck(elapsedMs);
       return;
     }
 
-    this.vel = direction.normalize().scale(this.movementSpeed);
+    this.vel = vec(0, 0);
+    this.checkIfStuck(elapsedMs);
+  }
+
+  private clearPath(): void {
+    this.path = [];
+    this.pathIndex = 0;
+    this.pathTimer = this.pathUpdateInterval;
+    this.lastTargetCell = "";
+
+    this.stuckTimer = 0;
+    this.lastCheckedPosition = null;
+
+    this.blockedWaypoint = null;
+    this.blockedWaypointTimer = 0;
+  }
+
+  private faceDirection(direction: Vector): void {
+    if (direction.magnitude === 0) {
+      return;
+    }
+
+    if (Math.abs(direction.x) > Math.abs(direction.y)) {
+      this.facing = direction.x > 0 ? "right" : "left";
+    } else {
+      this.facing = direction.y > 0 ? "down" : "up";
+    }
   }
 
   private updateFacing(): void {
-    if (this.vel.magnitude === 0) {
-      return;
-    }
-
-    if (Math.abs(this.vel.x) > Math.abs(this.vel.y)) {
-      this.facing = this.vel.x > 0 ? "right" : "left";
-    } else {
-      this.facing = this.vel.y > 0 ? "down" : "up";
-    }
+    this.faceDirection(this.vel);
   }
 
   private playAnimation(state: ZombieAnimationState): void {
@@ -214,7 +327,9 @@ export class Zombie extends Actor {
       return;
     }
 
-    this.updateFacing();
+    if (this.state !== "attacking") {
+      this.updateFacing();
+    }
 
     const isMoving = this.vel.magnitude > 0;
 
@@ -237,6 +352,7 @@ export class Zombie extends Actor {
 
     this.isHurt = true;
     this.vel = vec(0, 0);
+    this.clearPath();
 
     if (this.state === "attacking") {
       this.state = "chasing";
@@ -255,11 +371,58 @@ export class Zombie extends Actor {
 
     this.isDying = true;
     this.isHurt = false;
+    this.isTouchingPlayer = false;
 
     this.vel = vec(0, 0);
+    this.clearPath();
+
+    this.body.collisionType = CollisionType.PreventCollision;
 
     console.log("Zumbi morreu!");
 
     this.playOneShot("death");
+  }
+
+  private checkIfStuck(elapsedMs: number): void {
+    if (this.vel.magnitude === 0) {
+      this.stuckTimer = 0;
+      this.lastCheckedPosition = null;
+      return;
+    }
+
+    this.stuckTimer += elapsedMs;
+
+    if (!this.lastCheckedPosition) {
+      this.lastCheckedPosition = this.pos.clone();
+      return;
+    }
+
+    if (this.stuckTimer < this.stuckCheckInterval) {
+      return;
+    }
+
+    const progress = this.pos.sub(this.lastCheckedPosition).magnitude;
+
+    if (progress < this.minimumProgress) {
+      console.warn("Zumbi preso! Recalculando rota.");
+
+      const waypoint = this.path[this.pathIndex];
+
+      if (waypoint) {
+        const x = Math.floor(waypoint.x / 16);
+        const y = Math.floor(waypoint.y / 16);
+
+        this.blockedWaypoint = `${x},${y}`;
+        this.blockedWaypointTimer = 1200;
+      }
+
+      this.path = [];
+      this.pathIndex = 0;
+      this.pathTimer = this.pathUpdateInterval;
+      this.lastTargetCell = "";
+    }
+
+    this.stuckTimer = 0;
+    this.lastCheckedPosition = this.pos.clone();
   }
 }
