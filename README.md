@@ -6,6 +6,7 @@ Gameplay Bezerk <https://www.youtube.com/watch?v=ELE24jchei4>
 Gameplay Enter The Gungeon: <https://www.youtube.com/watch?v=U5r6mUaKnDY>
 
 Requisitos:
+
 - As equipes foram definidas em sala de aula. Defina um lider para sua equipe. ele cria o repositório. os demais membros são colaboradores. sem commits, sem nota.
 - Publique seu jogo no Github Pages ( <https://docs.github.com/pt/pages> )
 - faça um cronograma e gerencie o projeto no Github Projects ( <https://docs.github.com/pt/issues/planning-and-tracking-with-projects> )
@@ -13,6 +14,8 @@ Requisitos:
   
 Your site is live at <https://alvaro667.github.io/Atividade-008-Jogo-Web-com-Excalibur/>
 
-Mapa: Álvaro José 
+Mapa: Álvaro José
 Personagem: Liertsk
 Inimigos: Alisson
+
+Rode ```npm run start``` para iniciar no vs code
