@@ -18,4 +18,4 @@ Mapa: Álvaro José
 Personagem: Liertsk
 Inimigos: Alisson
 
-Rode ```npm run start``` para iniciar
+Rode ```npm run start``` para iniciar no vs code
