@@ -44,7 +44,7 @@ export class Zombie extends Actor {
   private path: Vector[] = [];
   private pathIndex = 0;
   private pathTimer = 0;
-  private readonly navigationRadius = 16;
+  private readonly navigationRadius = 8;
   private readonly pathUpdateInterval = 350;
   private readonly stuckCheckInterval = 450;
   private readonly minimumProgress = 3;
@@ -253,7 +253,7 @@ export class Zombie extends Actor {
       const difference = waypoint.sub(this.pos);
       const distance = difference.magnitude;
 
-      if (distance <= 4) {
+      if (distance <= 8) {
         this.pathIndex++;
         continue;
       }
