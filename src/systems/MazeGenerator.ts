@@ -72,8 +72,9 @@ export class MazeGenerator {
     
         //escolhe a célula inicial, mas poderia ser escolhida ao acaso
     
-        let lCel = 0;
-        let cCel = 0;
+        let lCel = 2*RNGmapa.integer(0,4);
+        let cCel = 2*RNGmapa.integer(0,8);
+        console.log(lCel + " e " + cCel);
         let direcao: number[] = [0, 0];
     
         labirinto[lCel][cCel] = String(nVizinhos(visitados, lCel / 2, cCel / 2)); // divide por 2 para usar as coordenadas da matriz de visitados, que é menor que a do labirinto

@@ -1,11 +1,10 @@
-
 import { Random, Vector, vec } from "excalibur";
+import { ENTRY_POINTS } from "../config/RoomConfig";
 
 export class EnemySpawner {
   static getSpawnPositions(
     level: string[][],
     count: number,
-    playerPosition: Vector,
     seed: number
   ): Vector[] {
     const random = new Random(seed);
@@ -37,10 +36,7 @@ export class EnemySpawner {
           y * tileSize + tileSize / 2
         );
 
-        if (
-          position.sub(playerPosition).magnitude <
-          minPlayerDistance
-        ) {
+        if (ENTRY_POINTS.some(p => position.sub(p).magnitude < minPlayerDistance)) {
           continue;
         }
 
