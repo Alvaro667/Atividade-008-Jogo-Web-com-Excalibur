@@ -17,6 +17,7 @@ import {
   ZombieDirection,
   ZombieAnimationState,
 } from "../animations/ZombieAnimations";
+import { Z } from "../config/RoomConfig";
 
 type ZombieState = "idle" | "chasing" | "attacking" | "cooldown";
 
@@ -70,6 +71,7 @@ export class Zombie extends Actor {
       width: ZOMBIE_CONFIG.width,
       height: ZOMBIE_CONFIG.height,
       collisionType: CollisionType.Active,
+      z: Z.actors,
     });
 
     this.player = player;
