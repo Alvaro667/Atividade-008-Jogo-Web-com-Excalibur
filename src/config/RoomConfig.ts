@@ -14,4 +14,4 @@ export const SAIDAS: number[][] = [// x, y
   [ 0,  1], // baixo     y += 1
 ];
 
-export const Z = { floor: -10, actors: 0, overlay: 10 };
+export const Z = { floor: -10, actors: 0, overlay: 10, hud: 20 };

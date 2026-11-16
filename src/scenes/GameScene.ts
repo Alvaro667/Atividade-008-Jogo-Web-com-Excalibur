@@ -34,8 +34,8 @@ export class GameScene extends Scene {
   private player!: Player;
   private sprites!: { floor: Sprite, floor1: Sprite, floor2: Sprite, wall: Sprite, door: Sprite, open: Sprite, roof: Sprite, borderT: Sprite, borderR: Sprite, borderL: Sprite }; // tipar como Sprite
   
-  private roomY = 0;
   private roomX = 0;
+  private roomY = 0;
   
   private roomSeed = 0;
 
@@ -51,9 +51,9 @@ export class GameScene extends Scene {
 
 
 
-  private loadRoom(x:number, y:number): void {
-    this.roomX = x;
+  private loadRoom(y:number, x:number): void {
     this.roomY = y;
+    this.roomX = x;
 
 
     this.roomSeed = RoomParameters.RoomSeed(this.baseSeed, this.roomX, this.roomY);
@@ -165,7 +165,7 @@ export class GameScene extends Scene {
       this.add(zombie);
     }
     
-    console.log(`Fase: Y = `+ this.roomY + ", X = " + this.roomX);
+    console.log(`Fase: X = ` + this.roomX + `, Y = `+ this.roomY);
     console.log(`Zumbis: ${spawnPositions.length}`);
     console.log(`Velocidade: ${difficulty.enemySpeed}`);
     console.log(`Dano: ${difficulty.enemyDamage}`);
@@ -176,9 +176,7 @@ export class GameScene extends Scene {
 
     if(! spawnPositions.length){
       this.phaseCleared = true;
-      this.phaseSignals.emit("phasecleared", {
-        phase: [this.roomY, this.roomX]
-      });
+      this.phaseSignals.emit("phasecleared", { x: this.roomX, y: this.roomY });
     }
   }
   
@@ -237,7 +235,7 @@ export class GameScene extends Scene {
       floor2: rougeLikeSpriteSheet.getSprite(0, 2),
       wall:   rougeLikeSpriteSheet.getSprite(4, 3),
       door:   rougeLikeSpriteSheet.getSprite(9, 3),
-      open:  rougeLikeSpriteSheet.getSprite(9, 0),
+      open:   rougeLikeSpriteSheet.getSprite(9, 0),
       roof:   rougeLikeSpriteSheet.getSprite(3, 1),
       borderT:rougeLikeSpriteSheet.getSprite(3, 0),
       borderR:rougeLikeSpriteSheet.getSprite(4, 1),
@@ -265,8 +263,8 @@ export class GameScene extends Scene {
     // ! Alvaro: Teste pra verificar se a signal de fase está funcionando corretamente. 
     // ! Você deve colocar a lógica que abre as portas dentro desse método.
     
-    this.phaseSignals.on("phasecleared", ({ y, x }) => {
-      console.log(`FASE ${y}, ${x} CONCLUÍDA!`);
+    this.phaseSignals.on("phasecleared", ({ x, y }) => {
+      console.log(`FASE ${x}, ${y} CONCLUÍDA!`);
       console.log("Todas as portas podem ser abertas.");
       this.openDoors();
     });
@@ -336,7 +334,8 @@ export class GameScene extends Scene {
         this.phaseCleared = true;
 
         this.phaseSignals.emit("phasecleared", {
-          phase: [this.roomY, this.roomX]
+          x: this.roomX,
+          y: this.roomY
         });
       }
     });

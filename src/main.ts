@@ -7,6 +7,7 @@ const game = new Engine({
   height: 16 * 9 * 3,
   displayMode: DisplayMode.FitScreenAndFill,
   pixelArt: true,
+  backgroundColor: Color.fromHex("#9E5D47"),
   scenes: {
     start: GameScene
   },
