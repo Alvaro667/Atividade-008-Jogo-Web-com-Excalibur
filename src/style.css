@@ -1,5 +1,31 @@
+
 @media (prefers-color-scheme: dark) {
   body {
     background-color: black;
   }
 }
+
+.tutorial-controls {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+  width: min(310px, calc(100vw - 40px));
+  padding: 16px 20px;
+  box-sizing: border-box;
+  background: rgba(10, 12, 21, 0.88);
+  color: #f7f4e9;
+  border: 2px solid #bd9251;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+  font-family: monospace;
+  pointer-events: none;
+}
+.tutorial-controls[hidden] { display: none; }
+.tutorial-controls h2 { font-size: 18px; margin: 0 0 16px; letter-spacing: 2px; color: #f3c981; }
+.tutorial-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; font-size: 13px; }
+.tutorial-line > span:first-child { color: #f3c981; font-weight: bold; }
+.tutorial-keys { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.tutorial-keys > span { display: flex; gap: 4px; }
+.tutorial-keys kbd { display: inline-flex; width: 25px; height: 25px; align-items: center; justify-content: center; background: #343747; border: 1px solid #82869a; border-radius: 4px; font-size: 14px; }
+.tutorial-action { max-width: 165px; text-align: right; }

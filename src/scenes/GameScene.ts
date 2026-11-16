@@ -1,3 +1,4 @@
+
 import {
   DefaultLoader,
   Engine,
@@ -54,6 +55,10 @@ export class GameScene extends Scene {
   private loadRoom(x:number, y:number): void {
     this.roomX = x;
     this.roomY = y;
+
+    const isTutorialRoom = x === 0 && y === 0;
+    const tutorial = document.getElementById("tutorial-controls");
+    if (tutorial) tutorial.hidden = !isTutorialRoom;
 
 
     this.roomSeed = RoomParameters.RoomSeed(this.baseSeed, this.roomX, this.roomY);
@@ -143,7 +148,7 @@ export class GameScene extends Scene {
     
     const spawnPositions = EnemySpawner.getSpawnPositions(
       this.level,
-      difficulty.enemyCount,
+      isTutorialRoom ? 0 : difficulty.enemyCount,
       this.roomSeed + 100,
     );
 
@@ -170,14 +175,15 @@ export class GameScene extends Scene {
     console.log(`Velocidade: ${difficulty.enemySpeed}`);
     console.log(`Dano: ${difficulty.enemyDamage}`);
     
-    if (spawnPositions.length < difficulty.enemyCount) {
+    if (!isTutorialRoom && spawnPositions.length < difficulty.enemyCount) {
       console.warn("Não há espaço suficiente para todos os zumbis desta fase.");
     }
 
     if(! spawnPositions.length){
       this.phaseCleared = true;
       this.phaseSignals.emit("phasecleared", {
-        phase: [this.roomY, this.roomX]
+        x: this.roomX,
+        y: this.roomY
       });
     }
   }
@@ -190,8 +196,8 @@ export class GameScene extends Scene {
           let tile = this.tilemap.getTile(x, y);
           if (tile == null) console.error("Tile nulo!");
           else if (tileChar == "d") {
-            tile.clearGraphics;
-            tile.clearColliders;
+            tile.clearGraphics();
+            tile.clearColliders();
             this.level[y][x] = " ";
             tile.addGraphic(this.sprites.open);
             tile.solid = false;
@@ -336,7 +342,8 @@ export class GameScene extends Scene {
         this.phaseCleared = true;
 
         this.phaseSignals.emit("phasecleared", {
-          phase: [this.roomY, this.roomX]
+          x: this.roomX,
+        y: this.roomY
         });
       }
     });
