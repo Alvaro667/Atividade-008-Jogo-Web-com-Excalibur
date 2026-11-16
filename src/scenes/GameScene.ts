@@ -47,6 +47,7 @@ export class GameScene extends Scene {
 
   private remainingZombies = 0;
   private phaseCleared = false;
+  private isGameOver = false;
 
 
 
@@ -58,7 +59,7 @@ export class GameScene extends Scene {
 
     const isTutorialRoom = x === 0 && y === 0;
     const tutorial = document.getElementById("tutorial-controls");
-    if (tutorial) tutorial.hidden = !isTutorialRoom;
+    if (tutorial) tutorial.hidden = !isTutorialRoom || this.isGameOver;
 
 
     this.roomSeed = RoomParameters.RoomSeed(this.baseSeed, this.roomX, this.roomY);
@@ -261,6 +262,7 @@ export class GameScene extends Scene {
     const aimIndicator = new AimIndicator();
     const ammoIndicator = new AmmoIndicator();
     this.player = new Player(aimIndicator, ammoIndicator);
+    this.player.onDeath = () => this.handleGameOver(engine);
     this.player.pos = ENTRY_POINTS[0].clone()
     this.player.z = Z.actors;
     
@@ -299,7 +301,7 @@ export class GameScene extends Scene {
   }
 
   override onPostUpdate(engine: Engine, elapsedMs: number): void {
-    if(!this.phaseCleared) return;
+    if (this.isGameOver || !this.phaseCleared) return;
 
     let i = -1;
 
@@ -324,6 +326,21 @@ export class GameScene extends Scene {
 
   override onPostDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
     // Called after Excalibur draws to the screen
+  }
+
+  private handleGameOver(engine: Engine): void {
+    if (this.isGameOver) return;
+    this.isGameOver = true;
+
+    // Oculta os controles do tutorial e mostra a tela de derrota.
+    const tutorial = document.getElementById("tutorial-controls");
+    if (tutorial) tutorial.hidden = true;
+
+    const screen = document.getElementById("game-over-screen");
+    if (screen) screen.hidden = false;
+
+    // Interrompe atualização, movimentação, ataques e colisões.
+    engine.stop();
   }
 
   private registerZombieDeath(zombie: Zombie): void {

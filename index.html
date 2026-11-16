@@ -13,8 +13,15 @@
       <h2>CONTROLES</h2>
       <div class="tutorial-line"><span>MOVER</span><span class="tutorial-keys"><kbd>W</kbd><span><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span></span></div>
       <div class="tutorial-line"><span>ATACAR</span><span class="tutorial-action">Clique esquerdo do mouse</span></div>
-      <div class="tutorial-line"><span>ESQUIVA</span><span class="tutorial-keys"><kbd-large>Space</kbd-large></span></div>
+      <div class="tutorial-line"><span>ESQUIVAR</span><span class="tutorial-action"><kbd class="tutorial-space">ESPAÇO</kbd></span></div>
     </aside>
+    <section id="game-over-screen" class="game-over-screen" hidden aria-labelledby="game-over-title">
+      <div class="game-over-panel">
+        <h1 id="game-over-title">GAME OVER</h1>
+        <p>Você foi derrotado!</p>
+        <button id="restart-game" type="button">JOGAR NOVAMENTE</button>
+      </div>
+    </section>
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
