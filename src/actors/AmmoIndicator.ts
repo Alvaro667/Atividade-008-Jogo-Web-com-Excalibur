@@ -7,6 +7,8 @@ import {
   vec
 } from "excalibur";
 
+import { Z }  from "../config/RoomConfig";
+
 export class AmmoIndicator extends Actor {
   private orbs = [
     new Circle({ radius: 5, color: Color.Yellow }),
@@ -17,7 +19,8 @@ export class AmmoIndicator extends Actor {
   constructor() {
     super({
       name: "AmmoIndicator",
-      collisionType: CollisionType.PreventCollision
+      collisionType: CollisionType.PreventCollision,
+      z: Z.hud
     });
 
     this.graphics.use(

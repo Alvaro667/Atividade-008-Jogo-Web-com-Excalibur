@@ -18,13 +18,21 @@ import { HeartHud } from "../ui/HeartHud";
 import { AimIndicator }     from "../actors/AimIndicator";
 import { AmmoIndicator }    from "../actors/AmmoIndicator";
 import { Zombie }           from "../actors/Zombie";
+import { Door }           from "../actors/Doors";
 import { Resources }        from "../resources/resources";
 import { DifficultySystem } from "../systems/DifficultySystem";
 import { EnemySpawner }     from "../systems/EnemySpawner";
 import { Pathfinding }      from "../systems/Pathfinding";
 import { MazeGenerator }    from "../systems/MazeGenerator";
 import { RoomParameters }   from "../systems/RoomParameters";
-import { ENTRY_POINTS, Z, SAIDAS }  from "../config/RoomConfig";
+import { ENTRY_POINTS, Z, SAIDAS, DOORS }  from "../config/RoomConfig";
+
+type Sprites = {
+  floor: Sprite; floor1: Sprite; floor2: Sprite;
+  wall: Sprite; roof: Sprite;
+  borderT: Sprite; borderR: Sprite; borderL: Sprite;
+  doorH: Sprite; doorV: Sprite;
+};
 
 export class GameScene extends Scene {
 
@@ -34,14 +42,13 @@ export class GameScene extends Scene {
   private overlay!: TileMap;
   private pathfinding!: Pathfinding;
   private player!: Player;
-  private sprites!: { floor: Sprite, floor1: Sprite, floor2: Sprite, wall: Sprite, door: Sprite, open: Sprite, roof: Sprite, borderT: Sprite, borderR: Sprite, borderL: Sprite }; // tipar como Sprite
-  
-  private roomY = 0;
+
+  private sprites!: Sprites;  
   private roomX = 0;
+  private roomY = 0;
   
   private roomSeed = 0;
 
-  // ! alvaro : signal da fase
   readonly phaseSignals = new EventEmitter<{
     phasecleared: { x: number; y: number };
   }>();
@@ -51,7 +58,7 @@ export class GameScene extends Scene {
   private isGameOver = false;
   private heartHud!: HeartHud;
 
-
+  private doors: Door[] = [];
 
 
 
@@ -90,33 +97,22 @@ export class GameScene extends Scene {
     });
     this.overlay.z = Z.overlay; 
 
-    if (this.sprites.floor && this.sprites.wall && this.sprites.door) {
+    if (this.sprites.floor && this.sprites.wall && this.sprites.roof) {
       for (let y = 0; y < this.level.length; y++) {
         for (let x = 0; x < this.level[y].length; x++) {
           const tileChar = this.level[y][x];
           let tile = this.tilemap.getTile(x, y);
           if (tile == null) console.error("Tile nulo!");
-          else switch (tileChar) {
-            case " ":
-              var chance = RNGtiles.integer(1, 100);
-              if      (chance <= 5) tile.addGraphic(this.sprites.floor2);
-              else if (chance > 95) tile.addGraphic(this.sprites.floor1);
-              else tile.addGraphic(this.sprites.floor);
-              break;
-            case "w":
-              tile.addGraphic(this.sprites.wall);
-              tile.solid = true;
-              if (this.level[y][x + 1] != "w") tile.addGraphic(this.sprites.borderR); 
-              if (this.level[y][x - 1] != "w") tile.addGraphic(this.sprites.borderL); 
-              break;
-            case "d":
-              tile.addGraphic(this.sprites.door);
-              tile.solid = true;
-              break;
-            default:
-              console.log("Tile não declarado: " + tileChar);
-              tile.addGraphic(this.sprites.floor);
-              break;
+          else if(tileChar == "w"){
+            tile.addGraphic(this.sprites.wall);
+            tile.solid = true;
+            if (this.level[y][x + 1] != "w") tile.addGraphic(this.sprites.borderR); 
+            if (this.level[y][x - 1] != "w") tile.addGraphic(this.sprites.borderL); 
+          } else {
+            var chance = RNGtiles.integer(1, 100);
+            if      (chance <= 5) tile.addGraphic(this.sprites.floor2);
+            else if (chance > 95) tile.addGraphic(this.sprites.floor1);
+            else tile.addGraphic(this.sprites.floor);
           }
         }
       }
@@ -145,7 +141,7 @@ export class GameScene extends Scene {
 
     this.add(this.overlay);
 
-
+    this.doors.forEach(d => d.close());
     
     this.pathfinding = new Pathfinding(this.level);
     
@@ -173,7 +169,7 @@ export class GameScene extends Scene {
       this.add(zombie);
     }
     
-    console.log(`Fase: Y = `+ this.roomY + ", X = " + this.roomX);
+    console.log(`Fase: X = ` + this.roomX + `, Y = `+ this.roomY);
     console.log(`Zumbis: ${spawnPositions.length}`);
     console.log(`Velocidade: ${difficulty.enemySpeed}`);
     console.log(`Dano: ${difficulty.enemyDamage}`);
@@ -184,29 +180,7 @@ export class GameScene extends Scene {
 
     if(! spawnPositions.length){
       this.phaseCleared = true;
-      this.phaseSignals.emit("phasecleared", {
-        x: this.roomX,
-        y: this.roomY
-      });
-    }
-  }
-  
-  private openDoors(): void{
-    if (this.sprites.open) {
-      for (let y = 0; y < this.level.length; y++) {
-        for (let x = 0; x < this.level[y].length; x++) {
-          const tileChar = this.level[y][x];
-          let tile = this.tilemap.getTile(x, y);
-          if (tile == null) console.error("Tile nulo!");
-          else if (tileChar == "d") {
-            tile.clearGraphics();
-            tile.clearColliders();
-            this.level[y][x] = " ";
-            tile.addGraphic(this.sprites.open);
-            tile.solid = false;
-          }
-        }
-      }
+      this.phaseSignals.emit("phasecleared", { x: this.roomX, y: this.roomY });
     }
   }
 
@@ -217,7 +191,11 @@ export class GameScene extends Scene {
     this.phaseCleared = false;
   }
   
-
+  private markDoorsOpenInLevel(): void {
+    for (const row of this.level)
+      for (let x = 0; x < row.length; x++)
+        if (row[x] === "d") row[x] = " ";
+  }
 
 
   override onInitialize(engine: Engine): void {
@@ -245,13 +223,18 @@ export class GameScene extends Scene {
       floor1: rougeLikeSpriteSheet.getSprite(0, 1),
       floor2: rougeLikeSpriteSheet.getSprite(0, 2),
       wall:   rougeLikeSpriteSheet.getSprite(4, 3),
-      door:   rougeLikeSpriteSheet.getSprite(9, 3),
-      open:  rougeLikeSpriteSheet.getSprite(9, 0),
       roof:   rougeLikeSpriteSheet.getSprite(3, 1),
       borderT:rougeLikeSpriteSheet.getSprite(3, 0),
       borderR:rougeLikeSpriteSheet.getSprite(4, 1),
       borderL:rougeLikeSpriteSheet.getSprite(2, 1),
+      doorH: Resources.DoorH.toSprite(),
+      doorV: Resources.DoorV.toSprite(),
     };
+
+    this.doors = DOORS.map(d =>
+      new Door(d.center, d.size, this.sprites[d.sprite])
+    );
+    this.doors.forEach(d => this.add(d));
 
     //preparação para criar o labirinto
 
@@ -278,10 +261,10 @@ export class GameScene extends Scene {
     // ! Alvaro: Teste pra verificar se a signal de fase está funcionando corretamente. 
     // ! Você deve colocar a lógica que abre as portas dentro desse método.
     
-    this.phaseSignals.on("phasecleared", ({ y, x }) => {
-      console.log(`FASE ${y}, ${x} CONCLUÍDA!`);
-      console.log("Todas as portas podem ser abertas.");
-      this.openDoors();
+    this.phaseSignals.on("phasecleared", ({ x, y }) => {
+      console.log(`FASE ${x}, ${y} CONCLUÍDA!`);
+      this.doors.forEach(d => d.open());
+      this.markDoorsOpenInLevel();
     });
 
     this.loadRoom(0, 0);
@@ -318,11 +301,11 @@ export class GameScene extends Scene {
     if (i == -1) return;
 
     this.clearRoom();
-
-    this.loadRoom(this.roomX + SAIDAS[i][0], this.roomY + SAIDAS[i][1]);
-
+    
     this.player.pos = ENTRY_POINTS[(i + 2) % 4].clone()
     this.player.vel = vec(0, 0);
+    
+    this.loadRoom(this.roomX + SAIDAS[i][0], this.roomY + SAIDAS[i][1]);
   }
 
   override onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {
@@ -367,7 +350,7 @@ export class GameScene extends Scene {
 
         this.phaseSignals.emit("phasecleared", {
           x: this.roomX,
-        y: this.roomY
+          y: this.roomY
         });
       }
     });
