@@ -28,4 +28,5 @@
 .tutorial-keys { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .tutorial-keys > span { display: flex; gap: 4px; }
 .tutorial-keys kbd { display: inline-flex; width: 25px; height: 25px; align-items: center; justify-content: center; background: #343747; border: 1px solid #82869a; border-radius: 4px; font-size: 14px; }
+.tutorial-keys kbd-large { display: inline-flex; width: 70px; height: 25px; align-items: center; justify-content: center; background: #343747; border: 1px solid #82869a; border-radius: 4px; font-size: 14px; }
 .tutorial-action { max-width: 165px; text-align: right; }
