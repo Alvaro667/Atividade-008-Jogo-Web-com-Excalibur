@@ -33,7 +33,7 @@
 .tutorial-keys .tutorial-space, .tutorial-action .tutorial-space { width: auto; min-width: 72px; padding: 0 10px; box-sizing: border-box; display: inline-flex; height: 25px; align-items: center; justify-content: center; background: #343747; border: 1px solid #82869a; border-radius: 4px; font: inherit; font-size: 12px; color: #f7f4e9; }
 
 
-/* Tela de derrota: fica acima do jogo e do tutorial. */
+/* ! Tela de derrota: fica acima do jogo e do tutorial. */
 .game-over-screen {
   position: fixed;
   inset: 0;
@@ -74,3 +74,17 @@
 .game-over-panel button:hover,
 .game-over-panel button:focus-visible { background: #f3c981; }
 
+/* ! HUD: um único coração no canto superior direito. */
+.health-hud {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  z-index: 1100;
+  pointer-events: none;
+}
+.health-hud canvas {
+  display: block;
+  width: 48px;
+  height: 48px;
+  image-rendering: pixelated;
+}

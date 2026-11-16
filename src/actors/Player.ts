@@ -20,8 +20,9 @@ import { Weapon } from "./Weapon";
 export class Player extends Actor {
   health = PLAYER_CONFIG.maxHealth;
 
-  // A cena define a ação executada quando a vida chega a zero.
+  // ! A cena define a ação executada quando a vida chega a zero.
   onDeath?: () => void;
+  onHealthChanged?: (health: number) => void;
 
   private isCharging = false;
   private aimIndicator: AimIndicator;
@@ -208,6 +209,7 @@ export class Player extends Actor {
   this.health = Math.max(0, this.health - amount);
 
   console.log(`Vida do jogador: ${this.health}`);
+  this.onHealthChanged?.(this.health);
 
   if (this.health === 0) {
     this.isCharging = false;

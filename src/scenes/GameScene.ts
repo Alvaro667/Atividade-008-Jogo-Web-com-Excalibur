@@ -14,6 +14,7 @@ import {
 } from "excalibur";
 
 import { Player }           from "../actors/Player";
+import { HeartHud } from "../ui/HeartHud";
 import { AimIndicator }     from "../actors/AimIndicator";
 import { AmmoIndicator }    from "../actors/AmmoIndicator";
 import { Zombie }           from "../actors/Zombie";
@@ -48,6 +49,7 @@ export class GameScene extends Scene {
   private remainingZombies = 0;
   private phaseCleared = false;
   private isGameOver = false;
+  private heartHud!: HeartHud;
 
 
 
@@ -262,6 +264,9 @@ export class GameScene extends Scene {
     const aimIndicator = new AimIndicator();
     const ammoIndicator = new AmmoIndicator();
     this.player = new Player(aimIndicator, ammoIndicator);
+    this.heartHud = new HeartHud();
+    this.heartHud.setHealth(this.player.health);
+    this.player.onHealthChanged = (health) => this.heartHud.setHealth(health);
     this.player.onDeath = () => this.handleGameOver(engine);
     this.player.pos = ENTRY_POINTS[0].clone()
     this.player.z = Z.actors;
@@ -336,11 +341,13 @@ export class GameScene extends Scene {
     const tutorial = document.getElementById("tutorial-controls");
     if (tutorial) tutorial.hidden = true;
 
-    const screen = document.getElementById("game-over-screen");
-    if (screen) screen.hidden = false;
-
-    // Interrompe atualização, movimentação, ataques e colisões.
+    // Interrompe o jogo imediatamente, mas permite que o coração complete
+    // sua última animação antes de exibir a tela de derrota.
     engine.stop();
+    this.heartHud.whenAnimationEnds(() => {
+      const screen = document.getElementById("game-over-screen");
+      if (screen) screen.hidden = false;
+    });
   }
 
   private registerZombieDeath(zombie: Zombie): void {
