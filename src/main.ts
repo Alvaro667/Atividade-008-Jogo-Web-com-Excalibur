@@ -7,6 +7,7 @@ const game = new Engine({
   height: 16 * 9 * 3,
   displayMode: DisplayMode.FitScreenAndFill,
   pixelArt: true,
+  backgroundColor: Color.fromHex("#763B36"),
   scenes: {
     start: GameScene
   },
@@ -29,4 +30,9 @@ game.start("start", {
   })
 }).then(() => {
   // Do something after the game starts
+});
+
+// ! Reinicia todo o estado da partida (jogador, salas e dificuldade).
+document.getElementById("restart-game")?.addEventListener("click", () => {
+  window.location.reload();
 });

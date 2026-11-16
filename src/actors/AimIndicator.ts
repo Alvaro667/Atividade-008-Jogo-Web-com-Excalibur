@@ -6,23 +6,26 @@ import {
   CollisionType
 } from "excalibur";
 
+import { Z }  from "../config/RoomConfig";
+
 export class AimIndicator extends Actor {
   constructor() {
     super({
       name: "AimIndicator",
       pos: vec(0, 0),
-      collisionType: CollisionType.PreventCollision
+      collisionType: CollisionType.PreventCollision,
+      z: Z.hud
     });
 
     const arrow = new Polygon({
       points: [
-        vec(0, -30),
+        vec( 0, -30),
         vec(-7, -18),
         vec(-3, -18),
-        vec(-3, 0),
-        vec(3, 0),
-        vec(3, -18),
-        vec(7, -18)
+        vec(-3,   0),
+        vec( 3,   0),
+        vec( 3, -18),
+        vec( 7, -18)
       ],
       color: Color.Yellow
     });

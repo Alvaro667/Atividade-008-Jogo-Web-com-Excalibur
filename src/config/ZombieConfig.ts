@@ -10,5 +10,5 @@ export const ZOMBIE_CONFIG = {
 
   damage: 1,
   attackWindup: 0,
-  attackCooldown: 800,
+  attackCooldown: 400,
 };

@@ -7,6 +7,8 @@ export const Resources = {
   ZombieRun: new ImageSource("./images/enemies/zombie/run.png"),
   ZombieHurt: new ImageSource("./images/enemies/zombie/hurt.png"),
   ZombieDeath: new ImageSource("./images/enemies/zombie/death.png"),
+  DoorH: new ImageSource("./images/doorh.png"),
+  DoorV: new ImageSource("./images/doorv.png")  
   
 } as const;
 // the 'as const' is a neat typescript trick to get strong typing on your resources.
