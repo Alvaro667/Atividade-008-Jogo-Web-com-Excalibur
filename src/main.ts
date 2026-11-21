@@ -31,3 +31,8 @@ game.start("start", {
 }).then(() => {
   // Do something after the game starts
 });
+
+// ! Reinicia todo o estado da partida (jogador, salas e dificuldade).
+document.getElementById("restart-game")?.addEventListener("click", () => {
+  window.location.reload();
+});
