@@ -24,7 +24,7 @@ import { EnemySpawner }     from "../systems/EnemySpawner";
 import { Pathfinding }      from "../systems/Pathfinding";
 import { MazeGenerator }    from "../systems/MazeGenerator";
 import { RoomParameters }   from "../systems/RoomParameters";
-import { ENTRY_POINTS, Z, SAIDAS, DOORS }  from "../config/RoomConfig";
+import { Z, DOORS }  from "../config/RoomConfig";
 
 type Sprites = {
   floor: Sprite; floor1: Sprite; floor2: Sprite;
@@ -244,7 +244,7 @@ export class GameScene extends Scene {
     const aimIndicator = new AimIndicator();
     const ammoIndicator = new AmmoIndicator();
     this.player = new Player(aimIndicator, ammoIndicator);
-    this.player.pos = ENTRY_POINTS[0].clone()
+    this.player.pos = DOORS[0].entry.clone()
     this.player.z = Z.actors;
     
     this.add(this.player);
@@ -295,10 +295,10 @@ export class GameScene extends Scene {
 
     this.clearRoom();
     
-    this.player.pos = ENTRY_POINTS[(i + 2) % 4].clone()
+    this.player.pos = DOORS[(i + 2) % 4].entry.clone()
     this.player.vel = vec(0, 0);
     
-    this.loadRoom(this.roomX + SAIDAS[i][0], this.roomY + SAIDAS[i][1]);
+    this.loadRoom(this.roomX + DOORS[i].direction.x, this.roomY + DOORS[i].direction.y);
   }
 
   override onPreDraw(ctx: ExcaliburGraphicsContext, elapsedMs: number): void {

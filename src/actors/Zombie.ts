@@ -345,7 +345,7 @@ export class Zombie extends Actor {
 
     this.health = Math.max(0, this.health - amount);
 
-    console.log(`Vida do zumbi: ${this.health}`);
+    //console.log(`Vida do zumbi: ${this.health}`);
 
     if (this.health === 0) {
       this.die();
@@ -380,7 +380,7 @@ export class Zombie extends Actor {
 
     this.body.collisionType = CollisionType.PreventCollision;
 
-    console.log("Zumbi morreu!");
+    //console.log("Zumbi morreu!");
 
     this.playOneShot("death");
   }
@@ -406,7 +406,7 @@ export class Zombie extends Actor {
     const progress = this.pos.sub(this.lastCheckedPosition).magnitude;
 
     if (progress < this.minimumProgress) {
-      console.warn("Zumbi preso! Recalculando rota.");
+      //console.warn("Zumbi preso! Recalculando rota.");
 
       const waypoint = this.path[this.pathIndex];
 
