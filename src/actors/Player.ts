@@ -20,6 +20,10 @@ import { Weapon } from "./Weapon";
 export class Player extends Actor {
   health = PLAYER_CONFIG.maxHealth;
 
+  // ! A cena define a ação executada quando a vida chega a zero.
+  onDeath?: () => void;
+  onHealthChanged?: (health: number) => void;
+
   private isCharging = false;
   private aimIndicator: AimIndicator;
   private weapon = new Weapon();
@@ -61,6 +65,10 @@ export class Player extends Actor {
   }
 
   override onPreUpdate(engine: Engine, elapsedMs: number): void {
+    if (this.health <= 0) {
+      this.vel = vec(0, 0);
+      return;
+    }
     let x = 0;
     let y = 0;
 
@@ -140,14 +148,14 @@ export class Player extends Actor {
     const pointer = engine.input.pointers.primary;
 
     pointer.on("down", (pointerEvent: PointerEvent) => {
-      if (pointerEvent.button === PointerButton.Left) {
+      if (pointerEvent.button === PointerButton.Left && this.health > 0) {
         this.isCharging = true;
       }
     });
 
     pointer.on("up", (pointerEvent: PointerEvent) => {
       if (pointerEvent.button === PointerButton.Left) {
-        if (this.isCharging) {
+        if (this.isCharging && this.health > 0) {
           this.isCharging = false;
           this.shoot(engine);
         }
@@ -179,6 +187,7 @@ export class Player extends Actor {
   }
 
   private shoot(engine: Engine): void {
+    if (this.health <= 0) return;
     const mousePosition = engine.input.pointers.primary.lastWorldPos;
 
     if (!mousePosition) return;
@@ -200,5 +209,14 @@ export class Player extends Actor {
   this.health = Math.max(0, this.health - amount);
 
   console.log(`Vida do jogador: ${this.health}`);
+  this.onHealthChanged?.(this.health);
+
+  if (this.health === 0) {
+    this.isCharging = false;
+    this.isDodging = false;
+    this.vel = vec(0, 0);
+    this.aimIndicator.graphics.opacity = 0;
+    this.onDeath?.();
+  }
   }
 }
