@@ -1,5 +1,5 @@
 import { Random, Vector, vec } from "excalibur";
-import { ENTRY_POINTS } from "../config/RoomConfig";
+import { DOORS } from "../config/RoomConfig";
 
 export class EnemySpawner {
   static getSpawnPositions(
@@ -36,7 +36,7 @@ export class EnemySpawner {
           y * tileSize + tileSize / 2
         );
 
-        if (ENTRY_POINTS.some(p => position.sub(p).magnitude < minPlayerDistance)) {
+        if (DOORS.some(p => position.sub(p.entry).magnitude < minPlayerDistance)) {
           continue;
         }
 

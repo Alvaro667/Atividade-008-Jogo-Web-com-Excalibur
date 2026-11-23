@@ -17,7 +17,7 @@ export class Door extends Actor {
 }
 
     open(): void {
-        this.body.collisionType = CollisionType.Passive,
+        this.body.collisionType = CollisionType.Passive;
         this.graphics.hide()
     }
 
