@@ -16,14 +16,14 @@ export class Pathfinding {
   private readonly tileSize = 16;
 
   private readonly directions = [
-    { x: 0, y: -1 },
-    { x: 1, y: 0 },
-    { x: 0, y: 1 },
-    { x: -1, y: 0 },
+    { x:  0, y: -1 },
+    { x:  1, y:  0 },
+    { x:  0, y:  1 },
+    { x: -1, y:  0 },
     { x: -1, y: -1 },
-    { x: 1, y: -1 },
-    { x: 1, y: 1 },
-    { x: -1, y: 1 }
+    { x:  1, y: -1 },
+    { x:  1, y:  1 },
+    { x: -1, y:  1 }
   ];
 
   constructor(private readonly level: string[][]) {}

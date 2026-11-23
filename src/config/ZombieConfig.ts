@@ -6,7 +6,7 @@ export const ZOMBIE_CONFIG = {
   maxHealth: 3,
 
   detectionRange: 250,
-  attackRange: 60,
+  attackRange: 24,
 
   damage: 1,
   attackWindup: 0,

@@ -25,7 +25,6 @@ export class Zombie extends Actor {
   health = ZOMBIE_CONFIG.maxHealth;
 
   private player: Player;
-  private isTouchingPlayer = false;
   private pathfinding: Pathfinding;
 
   private movementSpeed: number;
@@ -76,18 +75,6 @@ export class Zombie extends Actor {
 
     this.player = player;
 
-    this.on("collisionstart", (event) => {
-      if (event.other.owner === this.player && !this.isDying) {
-        this.isTouchingPlayer = true;
-      }
-    });
-
-    this.on("collisionend", (event) => {
-      if (event.other.owner === this.player) {
-        this.isTouchingPlayer = false;
-      }
-    });
-
     this.pathfinding = pathfinding;
 
     this.movementSpeed = speed;
@@ -137,7 +124,7 @@ export class Zombie extends Actor {
     const direction = this.player.pos.sub(this.pos);
     const distance = direction.magnitude;
 
-    const canAttack = this.isTouchingPlayer;
+    const canAttack = distance <= ZOMBIE_CONFIG.attackRange;
 
     switch (this.state) {
       case "idle":
@@ -175,7 +162,7 @@ export class Zombie extends Actor {
         this.stateTimer += elapsedMs;
 
         if (this.stateTimer >= ZOMBIE_CONFIG.attackWindup) {
-          if (this.isTouchingPlayer) {
+          if (distance <= ZOMBIE_CONFIG.attackRange) {
             this.player.takeDamage(this.attackDamage);
           }
 
@@ -345,7 +332,7 @@ export class Zombie extends Actor {
 
     this.health = Math.max(0, this.health - amount);
 
-    console.log(`Vida do zumbi: ${this.health}`);
+    //console.log(`Vida do zumbi: ${this.health}`);
 
     if (this.health === 0) {
       this.die();
@@ -373,14 +360,13 @@ export class Zombie extends Actor {
 
     this.isDying = true;
     this.isHurt = false;
-    this.isTouchingPlayer = false;
 
     this.vel = vec(0, 0);
     this.clearPath();
 
     this.body.collisionType = CollisionType.PreventCollision;
 
-    console.log("Zumbi morreu!");
+    //console.log("Zumbi morreu!");
 
     this.playOneShot("death");
   }
@@ -406,7 +392,7 @@ export class Zombie extends Actor {
     const progress = this.pos.sub(this.lastCheckedPosition).magnitude;
 
     if (progress < this.minimumProgress) {
-      console.warn("Zumbi preso! Recalculando rota.");
+      //console.warn("Zumbi preso! Recalculando rota.");
 
       const waypoint = this.path[this.pathIndex];
 

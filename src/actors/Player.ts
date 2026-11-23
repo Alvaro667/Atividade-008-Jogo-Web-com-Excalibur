@@ -32,6 +32,7 @@ export class Player extends Actor {
   private dodgeDirection = vec(0, 0);
   private dodgeTimer = 0;
   private dodgeCooldownTimer = 0;
+  private damageCooldownTimer = 0;
 
   constructor(aimIndicator: AimIndicator, ammoIndicator: AmmoIndicator) {
     super({
@@ -64,6 +65,13 @@ export class Player extends Actor {
     );
   }
 
+  override onPostUpdate(): void {
+    this.pos = vec(
+      Math.min(Math.max(this.pos.x, 0), 768),
+      Math.min(Math.max(this.pos.y, 0), 432)
+    );
+  }
+
   override onPreUpdate(engine: Engine, elapsedMs: number): void {
     if (this.health <= 0) {
       this.vel = vec(0, 0);
@@ -72,10 +80,14 @@ export class Player extends Actor {
     let x = 0;
     let y = 0;
 
-    if (this.dodgeCooldownTimer > 0) 
-    {
+    if (this.dodgeCooldownTimer > 0) {
       this.dodgeCooldownTimer -= elapsedMs;
       this.dodgeCooldownTimer = Math.max(0, this.dodgeCooldownTimer);
+    }
+
+    if (this.damageCooldownTimer > 0) {
+      this.damageCooldownTimer -= elapsedMs;
+      this.damageCooldownTimer = Math.max(0, this.damageCooldownTimer);
     }
 
     if (engine.input.keyboard.isHeld(Keys.W)) y -= 1;
@@ -83,38 +95,33 @@ export class Player extends Actor {
     if (engine.input.keyboard.isHeld(Keys.D)) x += 1;
     if (engine.input.keyboard.isHeld(Keys.A)) x -= 1;
 
-  const direction = vec(x, y);
+    const direction = vec(x, y);
 
-  if (engine.input.keyboard.wasPressed(Keys.Space)) 
-  {
-    this.startDodge(direction);
-  }
+    if (engine.input.keyboard.wasPressed(Keys.Space)) {
+      this.startDodge(direction);
+    }
 
-  if (this.isDodging) {
-  this.dodgeTimer -= elapsedMs;
+    if (this.isDodging) {
+      this.dodgeTimer -= elapsedMs;
 
-  if (this.dodgeTimer <= 0) 
-  {
-    this.isDodging = false;
-    this.vel = vec(0, 0);
-  } 
-  else 
-  {
-    this.vel = this.dodgeDirection.scale
-    (
-      PLAYER_CONFIG.dodgeDistance /
-      (PLAYER_CONFIG.dodgeDuration / 1000)
-    );
-  }
-}
-  else if (direction.magnitude > 0) 
-  {
-    this.vel = direction.normalize().scale(PLAYER_CONFIG.speed);
-  } 
-  else 
-  {
-    this.vel = vec(0, 0);
-  }
+      if (this.dodgeTimer <= 0) {
+        this.isDodging = false;
+        this.vel = vec(0, 0);
+      }
+      else {
+        this.vel = this.dodgeDirection.scale
+          (
+            PLAYER_CONFIG.dodgeDistance /
+            (PLAYER_CONFIG.dodgeDuration / 1000)
+          );
+      }
+    }
+    else if (direction.magnitude > 0) {
+      this.vel = direction.normalize().scale(PLAYER_CONFIG.speed);
+    }
+    else {
+      this.vel = vec(0, 0);
+    }
 
     this.handleMouseAim(engine);
 
@@ -128,9 +135,8 @@ export class Player extends Actor {
     this.setupMouse(engine);
   }
 
-  private startDodge(direction: Vector): void 
-  {
-    if (this.isDodging || this.dodgeCooldownTimer > 0) return;
+  private startDodge(direction: Vector): void {
+    if (this.isDodging || this.dodgeCooldownTimer) return;
     if (direction.magnitude === 0) return;
 
     this.dodgeDirection = direction.normalize();
@@ -142,7 +148,7 @@ export class Player extends Actor {
     const dodgeSpeed = PLAYER_CONFIG.dodgeDistance / (PLAYER_CONFIG.dodgeDuration / 1000);
 
     this.vel = this.dodgeDirection.scale(dodgeSpeed);
-}
+  }
 
   private setupMouse(engine: Engine): void {
     const pointer = engine.input.pointers.primary;
@@ -202,21 +208,26 @@ export class Player extends Actor {
   // ! ParaPedro: Adicionei o método takeDamage para o jogador, que reduz a vida do jogador quando ele é atingido por um zumbi. Se a vida do jogador chegar a 0, ele não pode mais receber dano.
   // ! é experimental, então pode alterar se achar necessário. 
   takeDamage(amount: number): void {
-  if (this.health <= 0 || amount <= 0) {
-    return;
-  }
+    
+    if (this.health <= 0 || amount <= 0 || this.damageCooldownTimer) {
+      return;
+    }
+    
+    this.damageCooldownTimer = PLAYER_CONFIG.damageCooldown;
+    
+    this.health = Math.max(0, this.health - amount);
+    
+    //console.log(`Vida do jogador: ${this.health}`);
+    this.onHealthChanged?.(this.health);
+    
+    if (this.health === 0) {
+      this.isCharging = false;
+      this.isDodging = false;
+      this.vel = vec(0, 0);
+      this.aimIndicator.graphics.opacity = 0;
+      this.onDeath?.();
+    }
 
-  this.health = Math.max(0, this.health - amount);
-
-  console.log(`Vida do jogador: ${this.health}`);
-  this.onHealthChanged?.(this.health);
-
-  if (this.health === 0) {
-    this.isCharging = false;
-    this.isDodging = false;
-    this.vel = vec(0, 0);
-    this.aimIndicator.graphics.opacity = 0;
-    this.onDeath?.();
-  }
+    this.actions.blink(100, 100, 2);
   }
 }

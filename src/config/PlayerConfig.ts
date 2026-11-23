@@ -5,7 +5,9 @@ export const PLAYER_CONFIG = {
   acceleration: 0,
   colliderWidth: 8,
   colliderHeight: 16,
+
   maxHealth: 3,
+  damageCooldown: 500,
 
   dodgeDistance: 100,
   dodgeDuration: 180,
