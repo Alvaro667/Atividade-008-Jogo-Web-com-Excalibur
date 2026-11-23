@@ -14,18 +14,18 @@ import {
 } from "excalibur";
 
 import { Player }           from "../actors/Player";
-import { HeartHud } from "../ui/HeartHud";
+import { HeartHud }         from "../ui/HeartHud";
 import { AimIndicator }     from "../actors/AimIndicator";
 import { AmmoIndicator }    from "../actors/AmmoIndicator";
 import { Zombie }           from "../actors/Zombie";
-import { Door }           from "../actors/Doors";
+import { Door }             from "../actors/Doors";
 import { Resources }        from "../resources/resources";
 import { DifficultySystem } from "../systems/DifficultySystem";
 import { EnemySpawner }     from "../systems/EnemySpawner";
 import { Pathfinding }      from "../systems/Pathfinding";
 import { MazeGenerator }    from "../systems/MazeGenerator";
 import { RoomParameters }   from "../systems/RoomParameters";
-import { Z, DOORS }  from "../config/RoomConfig";
+import { Z, DOORS }         from "../config/RoomConfig";
 
 type Sprites = {
   floor: Sprite; floor1: Sprite; floor2: Sprite;
@@ -42,6 +42,7 @@ export class GameScene extends Scene {
   private overlay!: TileMap;
   private pathfinding!: Pathfinding;
   private player!: Player;
+  private score = 0;
 
   private sprites!: Sprites;  
   private roomX = 0;
@@ -60,6 +61,10 @@ export class GameScene extends Scene {
 
   private doors: Door[] = [];
 
+  private tutorialEl = document.getElementById("tutorial-controls");
+  private scoreHudEl = document.getElementById("score-hud");
+  private roomEl = document.getElementById("score-room");
+  private pointsEl = document.getElementById("score-points");
 
 
   private loadRoom(x:number, y:number): void {
@@ -67,9 +72,8 @@ export class GameScene extends Scene {
     this.roomY = y;
 
     const isTutorialRoom = x === 0 && y === 0;
-    const tutorial = document.getElementById("tutorial-controls");
-    if (tutorial) tutorial.hidden = !isTutorialRoom || this.isGameOver;
 
+    this.updateHud();
 
     this.roomSeed = RoomParameters.RoomSeed(this.baseSeed, this.roomX, this.roomY);
     this.level = MazeGenerator.generateLevel(this.roomSeed + 10);
@@ -169,10 +173,10 @@ export class GameScene extends Scene {
       this.add(zombie);
     }
     
-    console.log(`Fase: X = ` + this.roomX + `, Y = `+ this.roomY);
+    /*console.log(`Fase: X = ` + this.roomX + `, Y = `+ this.roomY);
     console.log(`Zumbis: ${spawnPositions.length}`);
     console.log(`Velocidade: ${difficulty.enemySpeed}`);
-    console.log(`Dano: ${difficulty.enemyDamage}`);
+    console.log(`Dano: ${difficulty.enemyDamage}`);*/
     
     if (!isTutorialRoom && spawnPositions.length < difficulty.enemyCount) {
       console.warn("Não há espaço suficiente para todos os zumbis desta fase.");
@@ -197,6 +201,13 @@ export class GameScene extends Scene {
         if (row[x] === "d") row[x] = " ";
   }
 
+  private updateHud(): void {
+    const showTutorial = this.roomX === 0 && this.roomY === 0 && this.score === 0;
+    if(this.tutorialEl) this.tutorialEl.hidden = !showTutorial;
+    if(this.scoreHudEl) this.scoreHudEl.hidden = showTutorial;
+    if(this.roomEl) this.roomEl.textContent = `Sala (${this.roomX}, ${this.roomY})`;
+    if(this.pointsEl) this.pointsEl.textContent = `Pontos: ${this.score}`;
+  }
 
   override onInitialize(engine: Engine): void {
     
@@ -261,8 +272,8 @@ export class GameScene extends Scene {
     // ! Alvaro: Teste pra verificar se a signal de fase está funcionando corretamente. 
     // ! Você deve colocar a lógica que abre as portas dentro desse método.
     
-    this.phaseSignals.on("phasecleared", ({ x, y }) => {
-      console.log(`FASE ${x}, ${y} CONCLUÍDA!`);
+    this.phaseSignals.on("phasecleared", () => {
+      //console.log(`FASE ${x}, ${y} CONCLUÍDA!`);
       this.doors.forEach(d => d.open());
       this.markDoorsOpenInLevel();
     });
@@ -321,8 +332,7 @@ export class GameScene extends Scene {
     this.isGameOver = true;
 
     // Oculta os controles do tutorial e mostra a tela de derrota.
-    const tutorial = document.getElementById("tutorial-controls");
-    if (tutorial) tutorial.hidden = true;
+    if (this.tutorialEl) this.tutorialEl.hidden = true;
 
     // Interrompe o jogo imediatamente, mas permite que o coração complete
     // sua última animação antes de exibir a tela de derrota.
@@ -331,6 +341,8 @@ export class GameScene extends Scene {
       const screen = document.getElementById("game-over-screen");
       if (screen) screen.hidden = false;
     });
+    console.log(this.score);
+    this.score = 0;
   }
 
   private registerZombieDeath(zombie: Zombie): void {
@@ -339,11 +351,13 @@ export class GameScene extends Scene {
         return;
       }
 
+      this.score += 5 + 2*(RoomParameters.difficultyLevel(this.roomX, this.roomY));
+
+      this.updateHud();
+
       this.remainingZombies--;
 
-      console.log(
-        `Zumbis restantes: ${this.remainingZombies}`
-      );
+      //console.log(`Zumbis restantes: ${this.remainingZombies}`);
 
       if (this.remainingZombies === 0) {
         this.phaseCleared = true;

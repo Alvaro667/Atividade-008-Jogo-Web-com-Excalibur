@@ -25,7 +25,6 @@ export class Zombie extends Actor {
   health = ZOMBIE_CONFIG.maxHealth;
 
   private player: Player;
-  private isTouchingPlayer = false;
   private pathfinding: Pathfinding;
 
   private movementSpeed: number;
@@ -76,18 +75,6 @@ export class Zombie extends Actor {
 
     this.player = player;
 
-    this.on("collisionstart", (event) => {
-      if (event.other.owner === this.player && !this.isDying) {
-        this.isTouchingPlayer = true;
-      }
-    });
-
-    this.on("collisionend", (event) => {
-      if (event.other.owner === this.player) {
-        this.isTouchingPlayer = false;
-      }
-    });
-
     this.pathfinding = pathfinding;
 
     this.movementSpeed = speed;
@@ -137,7 +124,7 @@ export class Zombie extends Actor {
     const direction = this.player.pos.sub(this.pos);
     const distance = direction.magnitude;
 
-    const canAttack = this.isTouchingPlayer;
+    const canAttack = distance <= ZOMBIE_CONFIG.attackRange;
 
     switch (this.state) {
       case "idle":
@@ -175,7 +162,7 @@ export class Zombie extends Actor {
         this.stateTimer += elapsedMs;
 
         if (this.stateTimer >= ZOMBIE_CONFIG.attackWindup) {
-          if (this.isTouchingPlayer) {
+          if (distance <= ZOMBIE_CONFIG.attackRange) {
             this.player.takeDamage(this.attackDamage);
           }
 
@@ -373,7 +360,6 @@ export class Zombie extends Actor {
 
     this.isDying = true;
     this.isHurt = false;
-    this.isTouchingPlayer = false;
 
     this.vel = vec(0, 0);
     this.clearPath();
